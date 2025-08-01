@@ -1,0 +1,81 @@
+package templates
+
+import (
+	"html/template"
+	"io"
+	"io/fs"
+	"path/filepath"
+	"zupper/domain"
+	"zupper/reductor"
+	"zupper/utility"
+)
+
+const modError = "http:templates"
+
+const defaultTemplate = "index"
+
+// если каталог ../spaserver/templates существует, то прописываем его в переменную
+// для поиска шаблонов динамической обработки для отладки
+// вычисляется абсолютный путь относительно каталога запуска
+var pathTemplates = "../spaserver/template"
+
+func rootPathTemplates() (out string) {
+	defer func() {
+		if r := recover(); r != nil {
+			out = ""
+		}
+	}()
+	out, err := filepath.Abs(pathTemplates)
+	if err != nil {
+		return ""
+	}
+	if utility.PathOrFileExists(out) {
+		return out
+	} else {
+		return ""
+	}
+}
+
+type ITemplateUI interface {
+	LoadTemplates() (err error)
+	Render(w io.Writer, page reductor.ModelType, name string, data interface{}) error
+	RenderDebug(w io.Writer, page reductor.ModelType, name string, data interface{}) error
+}
+
+type Templates struct {
+	domain.Apper
+	debug                    bool
+	pages                    map[reductor.ModelType]*template.Template
+	fs                       fs.FS
+	rootPathTemplateGinDebug string
+	semaphore                Semaphore
+}
+
+var _ ITemplateUI = &Templates{}
+
+// panic if error
+func New(app domain.Apper) *Templates {
+	t := &Templates{
+		Apper:                    app,
+		pages:                    nil,
+		rootPathTemplateGinDebug: rootPathTemplates(),
+		semaphore:                NewSemaphore(1),
+	}
+	if t.rootPathTemplateGinDebug != "" {
+		// отладка возможна когда путь до шаблонов существует
+		t.debug = true
+	}
+	if err := t.LoadTemplates(); err != nil {
+		t.Logger().Errorf("%s %w", modError, err)
+		panic(err.Error())
+	}
+	return t
+}
+
+func (t *Templates) IsDebug() bool {
+	return t.debug
+}
+
+func (t *Templates) RootPathTemplates() string {
+	return t.rootPathTemplateGinDebug
+}
