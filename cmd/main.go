@@ -1,0 +1,182 @@
+package main
+
+import (
+	"context"
+	_ "embed"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+	"zupper/app"
+	"zupper/checkdbg"
+	"zupper/config"
+	"zupper/reductor"
+	"zupper/repo"
+	"zupper/spaserver"
+	"zupper/utility"
+	"zupper/zaplog"
+
+	"golang.org/x/sync/errgroup"
+)
+
+const modError = "main"
+
+// var version = "0.0.0"
+var fileExe string
+var dir string
+
+// если local true то папка создается локально
+var local = flag.Bool("local", false, "")
+
+func init() {
+	flag.Parse()
+	fileExe = os.Args[0]
+	var err error
+	dir, err = filepath.Abs(filepath.Dir(fileExe))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get absolute path: %v\n", err)
+		os.Exit(1)
+	}
+	if err := os.Chdir(dir); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to change directory: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func errMessageExit(title string, errDescription string) {
+	utility.MessageBox(title, errDescription)
+	os.Exit(-1)
+}
+
+func main() {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	group, groupCtx := errgroup.WithContext(ctx)
+
+	cfg, err := config.New("", !*local)
+	if err != nil {
+		errMessageExit("ошибка конфигурации", err.Error())
+	}
+
+	var logsOutConfig = map[string][]string{
+		"logger":   {"stdout", filepath.Join(cfg.LogPath(), config.Name)},
+		"echo":     {filepath.Join(cfg.LogPath(), "echo")},
+		"reductor": {filepath.Join(cfg.LogPath(), "reductor")},
+		"true":     {filepath.Join(cfg.LogPath(), "true")},
+	}
+	zl, err := zaplog.New(logsOutConfig, true)
+	if err != nil {
+		errMessageExit("ошибка создания логера", err.Error())
+	}
+	// group.Go(func() error {
+	// 	return zl.Run(groupCtx)
+	// })
+
+	lg, err := zl.GetLogger("logger")
+	if err != nil {
+		errMessageExit("ошибка получения логера", err.Error())
+	}
+	loger := lg.Sugar()
+	loger.Debug("zaplog started")
+	loger.Infof("mode = %s", config.Mode)
+	if cfg.Warning() != "" {
+		loger.Infof("pkg:config warning %s", cfg.Warning())
+	}
+
+	errProcessExit := func(title string, errDescription string) {
+		loger.Errorf("%s %s", title, errDescription)
+		errMessageExit(title, errDescription)
+	}
+	// создаем приложение с опциями из конфига и логером основным
+	app := app.New(cfg, loger, dir)
+	// инициализируем пути необходимые приложению
+	app.CreatePath()
+	// создаем редуктор для хранения моделей приложения
+	reductorLogger, err := zl.GetLogger("reductor")
+	if err != nil {
+		errProcessExit("Ошибка получения логера для редуктора", err.Error())
+	}
+	reductor.New(reductorLogger.Sugar(), app.InitModel())
+
+	loger.Info("start repo")
+	// инициализируем REPO
+	// TODO изменить получение путей из конфига
+	dbPath := cfg.DbPath()
+	repoStart := repo.New(app, dbPath)
+	if len(repoStart.Errors()) > 0 {
+		fullErr := strings.Join(repoStart.Errors(), "\n")
+		errProcessExit("Ошибки запуска репозитория", fullErr)
+	}
+	app.SetRepo(repoStart)
+
+	group.Go(func() error {
+		go func() {
+			<-groupCtx.Done()
+			repoStart.Shutdown()
+		}()
+		return repoStart.Run(groupCtx)
+	})
+	// тесты
+	if err := checkdbg.NewChecks(app).Run(); err != nil {
+		loger.Errorf("check error %v", err)
+		cancel()
+		// Wait for cleanup to complete
+		group.Wait()
+		errProcessExit("Check failed", err.Error())
+	}
+
+	loger.Info("start up webapp")
+
+	port := cfg.Configuration().HostPort
+	if port == "" || port == "auto" {
+		if portFree, err := utility.GetFreePort(); err == nil {
+			port = fmt.Sprintf("%d", portFree)
+			// порт не записываем в файл конфигурации остается только в модели приложения
+			app.Config().SetInConfig("hostport", port)
+		}
+	}
+	loger.Infof("http port %s", port)
+
+	// тут инициализируются так же модели для всех видов
+	spaServerLogger, err := zl.GetLogger("echo")
+	if err != nil {
+		errProcessExit("Ошибка получения логера для http server", err.Error())
+	}
+	httpServer := spaserver.New(app, spaServerLogger, repoStart, port, true)
+	loger.Infof("отладка шаблонов %v", httpServer.TemplateIsDebug())
+	loger.Infof("путь шаблонов %s", httpServer.RootPathTemplates())
+	// запускаем сервер эхо через него SSE работает для флэш сообщений
+	// httpServer.Start()
+	group.Go(func() error {
+		go func() {
+			// предположим, что httpServer (как и http.ListenAndServe, кстати) не умеет останавливаться по отмене
+			// контекста, тогда придётся добавить обработку отмены вручную.
+			// ошибка у какого то другого члена группы или он завершился принудительно
+			<-groupCtx.Done()
+			app.Logger().Debugf("%s получен сигнал завершения контекста группы в HTTP", modError)
+			if err := httpServer.Shutdown(); err != nil {
+				app.Logger().Debugf("%s stopped http server with error: %v", modError, err)
+			}
+		}()
+		httpServer.Start()
+		// по ошибке сервера возвращаем в группу код ошибки
+		return <-httpServer.Notify()
+	})
+
+	// GUI
+	time.Sleep(time.Second * 2)
+	// TODO
+
+	cancel()
+	// ожидание завершения всех в группе
+	if err := group.Wait(); err != nil {
+		fmt.Printf("game over! error %s\n", err.Error())
+	} else {
+		fmt.Println("game over!")
+	}
+	zl.Shutdown()
+}

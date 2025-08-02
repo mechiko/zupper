@@ -3,6 +3,7 @@ package spaserver
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -12,14 +13,14 @@ import (
 	"zupper/spaserver/sse"
 	"zupper/spaserver/templates"
 	"zupper/spaserver/views"
-	"zupper/zaplog"
+	"zupper/zaplog/zap4echo"
 
 	"github.com/alexedwards/scs/v2"
 	session "github.com/canidam/echo-scs-session"
 	"github.com/donseba/go-htmx"
-	"github.com/karagenc/zap4echo"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"go.uber.org/zap"
 )
 
 const (
@@ -55,7 +56,7 @@ type Server struct {
 
 // var sseManager *sse.Server
 
-func New(a domain.Apper, repo *repo.Repository, port string, debug bool) *Server {
+func New(a domain.Apper, zl *zap.Logger, repo *repo.Repository, port string, debug bool) *Server {
 	addr := fmt.Sprintf("%s:%s", "127.0.0.1", port)
 	if port == "" {
 		addr = _defaultAddr
@@ -63,10 +64,11 @@ func New(a domain.Apper, repo *repo.Repository, port string, debug bool) *Server
 	sess := scs.New()
 	sess.Lifetime = 24 * time.Hour
 	e := echo.New()
+	e.Logger.SetOutput(io.Discard)
 	e.Use(
 		session.LoadAndSave(sess),
-		zap4echo.Logger(zaplog.EchoSugar),
-		zap4echo.Recover(zaplog.EchoSugar),
+		zap4echo.Logger(zl),
+		zap4echo.Recover(zl),
 	)
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"*"},

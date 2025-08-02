@@ -1,0 +1,41 @@
+hostname = '127.0.0.1'
+hostport = '8888'
+output = 'output'
+
+[application]
+dbtype = 'sqlite'
+fsrarid = '.'
+license = 'f7bc886d-bbcd-4ce9-845f-1209d87d406d'
+
+[config]
+dbname = ''
+driver = 'sqlite'
+file = ''
+
+[layouts]
+timelayout = '2006-01-02T15:04:05-0700'
+timelayoutclear = '2006.01.02 15:04:05'
+timelayoutday = '2006.01.02'
+timelayoututc = '2006-01-02T15:04:05'
+
+[selfdb]
+dbname = '4zupper'
+driver = 'sqlite'
+file = 'E:\src\goproj\!!!WALK\!zupper\cmd\.nevakod\4zupper\4zupper.db'
+
+[trueclient]
+deviceid = ''
+hashkey = ''
+layoututc = '2006-01-02T15:04:05'
+omsid = ''
+standgis = 'markirovka.crpt.ru'
+standsuz = 'suzgrid.crpt.ru'
+test = false
+testgis = 'markirovka.sandbox.crptech.ru'
+testsuz = 'suz.sandbox.crptech.ru'
+useconfigdb = true
+
+[trueznak]
+dbname = ''
+driver = 'sqlite'
+file = ''

@@ -17,18 +17,22 @@ type Reductor struct {
 var once sync.Once
 var instance *Reductor
 
-// func New(pageModel ModelType, model IModel, logger *zap.SugaredLogger) *Reductor {
-func New(logger *zap.SugaredLogger) *Reductor {
+// создаем singleton и передаем модель по умолчанию reductor.Model("")
+func New(logger *zap.SugaredLogger, model interface{}) *Reductor {
 	once.Do(func() {
 		instance = &Reductor{
 			logger: logger,
 			models: make(ModelList),
 		}
 	})
+	instance.SetModel(Application, model)
 	return instance
 }
 
 func Instance() *Reductor {
+	if instance == nil {
+		panic("reductor instance is nil")
+	}
 	return instance
 }
 

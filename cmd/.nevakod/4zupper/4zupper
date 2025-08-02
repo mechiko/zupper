@@ -1,0 +1,34 @@
+2025-08-02 11:10:11	DEBUG	cmd/main.go:84	zaplog started
+2025-08-02 11:10:11	INFO	cmd/main.go:85	mode = development
+2025-08-02 11:10:11	INFO	cmd/main.go:87	pkg:config warning config file ('E:\src\goproj\!!!WALK\!zupper\cmd\.nevakod\4zupper\4zupper.toml') not found
+
+2025-08-02 11:10:11	INFO	app/type.go:50	start pages
+2025-08-02 11:10:11	INFO	app/type.go:159	путь output приложения E:\src\goproj\!!!WALK\!zupper\cmd\output
+2025-08-02 11:10:11	INFO	cmd/main.go:105	start repo
+2025-08-02 11:10:11	ERROR	dbs/types.go:53	repo:dbs repo:dbs отсутствуют имя базы данных для А3
+zupper/repo/dbs.New
+	E:/src/goproj/!!!WALK/!zupper/repo/dbs/types.go:53
+zupper/repo.New
+	E:/src/goproj/!!!WALK/!zupper/repo/types.go:62
+main.main
+	E:/src/goproj/!!!WALK/!zupper/cmd/main.go:109
+runtime.main
+	C:/Go/go.124/src/runtime/proc.go:283
+2025-08-02 11:10:11	ERROR	dbs/types.go:58	repo:dbs repo:dbs отсутствуют имя базы данных для 4Z
+zupper/repo/dbs.New
+	E:/src/goproj/!!!WALK/!zupper/repo/dbs/types.go:58
+zupper/repo.New
+	E:/src/goproj/!!!WALK/!zupper/repo/types.go:62
+main.main
+	E:/src/goproj/!!!WALK/!zupper/cmd/main.go:109
+runtime.main
+	C:/Go/go.124/src/runtime/proc.go:283
+2025-08-02 11:10:11	INFO	repo/types.go:74	pkg:repo отсутствует БД А3
+2025-08-02 11:10:11	INFO	repo/types.go:94	pkg:repo отсутствует БД config
+2025-08-02 11:10:11	INFO	repo/types.go:102	pkg:repo отсутствует БД 4z
+2025-08-02 11:10:11	INFO	cmd/main.go:132	start up webapp
+2025-08-02 11:10:11	INFO	cmd/main.go:142	http port 8888
+2025-08-02 11:10:11	INFO	cmd/main.go:150	отладка шаблонов false
+2025-08-02 11:10:11	INFO	cmd/main.go:151	путь шаблонов 
+2025-08-02 11:10:22	DEBUG	cmd/main.go:160	main получен сигнал завершения контекста группы в HTTP
+2025-08-02 11:10:22	INFO	repo/start.go:16	завершаем работу репозитория по контексту
