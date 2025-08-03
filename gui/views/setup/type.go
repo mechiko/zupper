@@ -40,13 +40,7 @@ func New(parent walk.Container, app domain.Apper) (pp types.Page, err error) {
 	}
 	if err := (dcl.Composite{
 		AssignTo: &p.Composite,
-		// DataBinder: dcl.DataBinder{
-		// 	AssignTo:            &p.db,
-		// 	Name:                "Hd",
-		// 	ErrorPresenter:      dcl.ToolTipErrorPresenter{},
-		// 	OnDataSourceChanged: p.changeData,
-		// },
-		Name: "homePage",
+		Name:     "homePage",
 		// Background: dcl.SolidColorBrush{walk.RGB(255, 255, 255)},
 		Layout:    dcl.VBox{Spacing: 10, Margins: dcl.Margins{Left: 5, Top: 5, Right: 5, Bottom: 5}},
 		Alignment: dcl.Alignment2D(walk.AlignHNearVNear),
@@ -190,43 +184,35 @@ func New(parent walk.Container, app domain.Apper) (pp types.Page, err error) {
 						},
 					},
 				}},
-
 			dcl.Composite{
 				Border: false,
-				Layout: dcl.HBox{MarginsZero: true, SpacingZero: true, Margins: dcl.Margins{Left: 5, Top: 5, Right: 5, Bottom: 0}},
+				Layout: dcl.VBox{MarginsZero: true, SpacingZero: true, Margins: dcl.Margins{Left: 5, Top: 5, Right: 5, Bottom: 0}},
 				Children: []dcl.Widget{
-					dcl.Composite{
-						Layout:  dcl.VBox{MarginsZero: true, SpacingZero: false, Margins: dcl.Margins{Left: 5, Top: 5, Right: 5, Bottom: 5}},
-						MinSize: dcl.Size{Width: 300},
-						Children: []dcl.Widget{
-							dcl.PushButton{
-								AssignTo: &p.saveconf,
-								// ColumnSpan: 2,
-								Text: "Обновить конфигурацию",
-								// OnClicked: p.saveConfig,
-								OnClicked: func() {
-									// msg := entity.Message{
-									// 	Sender: "homepage.reloadGui",
-									// 	Cmd:    "reload",
-									// 	Model:  nil,
-									// }
-									// p.Reductor().ChanIn() <- msg
-								},
-							},
-							dcl.PushButton{
-								Text: "Открыть папку выгрузки",
-								OnClicked: func() {
-									// p.OpenDir()
-								},
-							},
-						}}}},
+					dcl.PushButton{
+						AssignTo: &p.saveconf,
+						// ColumnSpan: 2,
+						Text: "Обновить конфигурацию",
+						// OnClicked: p.saveConfig,
+						OnClicked: func() {
+							// msg := entity.Message{
+							// 	Sender: "homepage.reloadGui",
+							// 	Cmd:    "reload",
+							// 	Model:  nil,
+							// }
+							// p.Reductor().ChanIn() <- msg
+						},
+					},
+					dcl.PushButton{
+						Text: "Открыть папку выгрузки",
+						OnClicked: func() {
+							// p.OpenDir()
+						},
+					},
+				}},
 			dcl.VSpacer{},
 		},
 	}).Create(dcl.NewBuilder(parent)); err != nil {
 		return nil, fmt.Errorf("%s %w", modError, err)
 	}
-	// if err := walk.InitWrapperWindow(p); err != nil {
-	// 	return nil, fmt.Errorf("%s %w", modError, err)
-	// }
 	return p, err
 }

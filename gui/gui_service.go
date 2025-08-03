@@ -147,21 +147,21 @@ func (s *guiService) NewMainWindow() (winn *walk.MainWindow, err error) {
 	}
 	w.SetIcon(svgIcon)
 
-	fontMono, err := walk.NewFont("JetBrains Mono", fontSizePoint, 0)
-	if err != nil {
-		return nil, fmt.Errorf("gui:walk load font %s", err.Error())
-	}
-	w.SetFont(fontMono)
-	w.AddDisposable(fontMono)
+	// fontMono, err := walk.NewFont("JetBrains Mono", fontSizePoint, 0)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("gui:walk load font %s", err.Error())
+	// }
+	// w.SetFont(fontMono)
+	// w.AddDisposable(fontMono)
 
-	// x := int((s.ScrWidth - int32(w.Size().Width)) / 2)
-	// y := int((s.ScrHeight - int32(w.Size().Height)) / 2)
-	// w.SetBounds(walk.Rectangle{
-	// 	X:      x,
-	// 	Y:      y,
-	// 	Width:  w.Size().Width,
-	// 	Height: w.Size().Height,
-	// })
+	x := int((s.ScrWidth - int32(w.Size().Width)) / 2)
+	y := int((s.ScrHeight - int32(w.Size().Height)) / 2)
+	w.SetBounds(walk.Rectangle{
+		X:      x,
+		Y:      y,
+		Width:  w.Size().Width,
+		Height: w.Size().Height,
+	})
 
 	s.updateTitle(s.MainWindow.CurrentPageTitle())
 
