@@ -3,6 +3,7 @@ package types
 import (
 	"log"
 
+	"zupper/domain"
 	"zupper/gui/resource"
 
 	"github.com/mechiko/walk"
@@ -13,7 +14,7 @@ type CallTreeMenu func(tvm *AppmenuTreeModel) error
 type AppMenuAction func(name string)
 
 type AppMenu struct {
-	IApp
+	domain.Apper
 	name     string
 	class    string
 	action   PageFactoryFunc
@@ -22,11 +23,12 @@ type AppMenu struct {
 	children []*AppMenu
 }
 
-func (a *AppmenuTreeModel) NewRootAppMenu(app IApp, page PageConfig, action PageFactoryFunc, image interface{}) *AppMenu {
-	am := &AppMenu{IApp: app, name: page.Title, class: page.Class, parent: nil, action: action, image: image}
+func (a *AppmenuTreeModel) NewRootAppMenu(app domain.Apper, page PageConfig, action PageFactoryFunc, image interface{}) *AppMenu {
+	am := &AppMenu{Apper: app, name: page.Title, class: page.Class, parent: nil, action: action, image: image}
 	a.roots = append(a.roots, am)
 	return am
 }
+
 func (a *AppmenuTreeModel) NewRootMenu(name string, action PageFactoryFunc, image string) *AppMenu {
 	am := &AppMenu{name: name, parent: nil, action: action, image: image}
 	a.roots = append(a.roots, am)
@@ -35,8 +37,8 @@ func (a *AppmenuTreeModel) NewRootMenu(name string, action PageFactoryFunc, imag
 
 var _ walk.TreeItem = new(AppMenu)
 
-func (a *AppMenu) AddChild(app IApp, page PageConfig, action PageFactoryFunc, image interface{}) *AppMenu {
-	am := &AppMenu{IApp: app, name: page.Title, class: page.Class, parent: a, action: action, image: image}
+func (a *AppMenu) AddChild(app domain.Apper, page PageConfig, action PageFactoryFunc, image interface{}) *AppMenu {
+	am := &AppMenu{Apper: app, name: page.Title, class: page.Class, parent: a, action: action, image: image}
 	a.children = append(a.children, am)
 	return am
 }

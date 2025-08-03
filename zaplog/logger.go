@@ -7,6 +7,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var Logger *zap.Logger
+
 type ZapLog struct {
 	logs map[LogName]*zap.Logger
 }
@@ -75,6 +77,10 @@ func (z *ZapLog) init(outConfig map[string][]string, debug bool) (err error) {
 		} else {
 			return fmt.Errorf("wrong name for logger %s", key)
 		}
+	}
+	// для совместимости основной логер пропишем в глобальную переменную
+	if l, ok := z.logs[LogNameLogger]; ok {
+		Logger = l
 	}
 	return nil
 }

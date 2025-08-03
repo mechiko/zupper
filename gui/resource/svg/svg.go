@@ -24,16 +24,16 @@ func Colorize(src []byte, clr color.Color) []byte {
 	rdr := bytes.NewReader(src)
 	s, err := svgFromXML(rdr)
 	if err != nil {
-		zaplog.Logger.Error("could not load SVG, falling back to static content:", err)
+		zaplog.Logger.Sugar().Error("could not load SVG, falling back to static content:", err)
 		return src
 	}
 	if err := s.replaceFillColor(clr); err != nil {
-		zaplog.Logger.Error("could not replace fill color, falling back to static content:", err)
+		zaplog.Logger.Sugar().Error("could not replace fill color, falling back to static content:", err)
 		return src
 	}
 	colorized, err := xml.Marshal(s)
 	if err != nil {
-		zaplog.Logger.Error("could not marshal svg, falling back to static content:", err)
+		zaplog.Logger.Sugar().Error("could not marshal svg, falling back to static content:", err)
 		return src
 	}
 	return colorized

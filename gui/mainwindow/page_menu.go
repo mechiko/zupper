@@ -3,7 +3,6 @@ package mainwindow
 import (
 	"fmt"
 
-	"zupper/entity"
 	"zupper/gui/types"
 
 	"github.com/mechiko/walk"
@@ -43,12 +42,12 @@ func (w *MainWindow) SetCurrentMenu(pageMenu *types.AppMenu) error {
 
 	if prevPage == nil {
 		// еще меню не выставилось значит первый запуск и активация первого меню
-		msg := entity.Message{
-			Sender: "mainwindow.SetCurrentMenu",
-			Cmd:    "first",
-			Model:  nil,
-		}
-		w.IApp.Effects().ChanIn() <- msg
+		// msg := entity.Message{
+		// 	Sender: "mainwindow.SetCurrentMenu",
+		// 	Cmd:    "first",
+		// 	Model:  nil,
+		// }
+		// w.IApp.Effects().ChanIn() <- msg
 	}
 
 	if prevPage != nil {
@@ -67,7 +66,7 @@ func (w *MainWindow) SetCurrentMenu(pageMenu *types.AppMenu) error {
 		w.DisposeChildren(w.pageCom)
 	}
 
-	page, err := newPage(w.pageCom, w.IApp)
+	page, err := newPage(w.pageCom, w.Apper)
 	if err != nil {
 		return fmt.Errorf("newPage(w.pageCom) %w", err)
 	}
@@ -77,12 +76,12 @@ func (w *MainWindow) SetCurrentMenu(pageMenu *types.AppMenu) error {
 	// через редуктор вызываем обновление состояния GUI
 	// запрашиваем текущее состояние в редукторе которое прилетит в обновление
 	// каждый вид пересоздается при активации поэтому надо состояние присылать
-	msg := entity.Message{
-		Sender: "mainwindow.SetCurrentMenu",
-		Cmd:    pageMenu.Class(),
-		Model:  nil,
-	}
-	w.IApp.Effects().ChanIn() <- msg
+	// msg := entity.Message{
+	// 	Sender: "mainwindow.SetCurrentMenu",
+	// 	Cmd:    pageMenu.Class(),
+	// 	Model:  nil,
+	// }
+	// w.IApp.Effects().ChanIn() <- msg
 	// w.Logger().Debugf("%s reductor chanin msg %s", modError, msg.Cmd)
 	// msg = entity.Message{
 	// 	Sender: "mainwindow.SetCurrentMenu",

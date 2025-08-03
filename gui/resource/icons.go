@@ -7,6 +7,7 @@ import (
 	"image/color"
 	_ "image/png"
 
+	"zupper/domain"
 	"zupper/gui/resource/svg"
 
 	_ "github.com/biessek/golang-ico"
@@ -14,12 +15,12 @@ import (
 )
 
 type resourceData struct {
-	IApp
+	domain.Apper
 }
 
-func New(app IApp) *resourceData {
+func New(app domain.Apper) *resourceData {
 	return &resourceData{
-		IApp: app,
+		Apper: app,
 	}
 }
 

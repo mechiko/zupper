@@ -16,7 +16,7 @@ import (
 func (s *guiService) ProgressDialog(pw walk.Form, cb func() int) (ii int, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("%s panic %v", modError, r)
+			err = fmt.Errorf("gui progress dialog panic %v", r)
 		}
 	}()
 	var dlg *walk.Dialog

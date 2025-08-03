@@ -8,10 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 	"zupper/app"
 	"zupper/checkdbg"
 	"zupper/config"
+	"zupper/gui"
 	"zupper/reductor"
 	"zupper/repo"
 	"zupper/spaserver"
@@ -168,7 +168,38 @@ func main() {
 	})
 
 	// GUI
-	time.Sleep(time.Second * 2)
+	gui, err := gui.New("", app, repoStart)
+	if err != nil {
+		errStr := err.Error()
+		arrErr := strings.Split(errStr, "\n")
+		if len(arrErr) > 0 {
+			errStr = arrErr[0]
+		}
+		app.Logger().Errorf("main:gui.new error:%s", errStr)
+		utility.MessageBox("ошибка создания gui", errStr)
+	} else {
+		if mw, err := gui.NewMainWindow(); err != nil {
+			app.Logger().Errorf("main:walk.newmainwindows error:%s", err.Error())
+			utility.MessageBox("ошибка создания главного окна", err.Error())
+		} else {
+			// вот теперь между созданием главного окна и запуском можем что то менять
+			mw.Starting().Attach(func() {
+				// действия при старте главного окна
+				// if err := mw.Activate(); err != nil {
+				// 	zaplog.Logger.Errorf("main:walk activate error:%s", err.Error())
+				// }
+				// mw.SetVisible(true)
+				// if err := mw.SetFocus(); err != nil {
+				// 	zaplog.Logger.Errorf("main:walk focus error:%s", err.Error())
+				// }
+			})
+			if err := gui.Run(ctx); err != nil {
+				app.Logger().Errorf("walk:run %s", err.Error())
+			}
+		}
+	}
+	app.Logger().Info("main:walk end вызываем cancel()")
+
 	// TODO
 
 	cancel()

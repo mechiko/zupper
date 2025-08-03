@@ -1,6 +1,7 @@
 package mainwindow
 
 import (
+	"zupper/domain"
 	"zupper/gui/types"
 
 	"github.com/mechiko/walk"
@@ -33,12 +34,10 @@ type MainWindowConfig struct {
 
 type MainWindow struct {
 	*walk.MainWindow
-	types.IApp
-	Cfg *MainWindowConfig
-	Tvm *types.AppmenuTreeModel
-
-	tv *walk.TreeView
-
+	domain.Apper
+	Cfg                         *MainWindowConfig
+	Tvm                         *types.AppmenuTreeModel
+	tv                          *walk.TreeView
 	pageCom                     *walk.Composite
 	currentPageChangedPublisher walk.EventPublisher
 	SbiScan                     *walk.StatusBarItem
@@ -51,14 +50,14 @@ type MainWindow struct {
 	IconWatch                   *walk.Icon
 }
 
-func New(app types.IApp, tree *types.AppmenuTreeModel) *MainWindow {
+func New(app domain.Apper, tree *types.AppmenuTreeModel) *MainWindow {
 
 	w := &MainWindow{
-		IApp: app,
-		Tvm:  tree,
+		Apper: app,
+		Tvm:   tree,
 	}
 
 	// регистрируем в редукторе
-	app.Reductor().RegisterGui(w.ReductorUpdaterGUI)
+	// app.Reductor().RegisterGui(w.ReductorUpdaterGUI)
 	return w
 }

@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"image/color"
 
+	"zupper/domain"
 	"zupper/gui/mainwindow"
 	"zupper/gui/resource"
 	"zupper/gui/types"
 	"zupper/gui/views"
+	"zupper/repo"
 
 	"github.com/lxn/win"
 	"github.com/mechiko/walk"
@@ -21,12 +23,11 @@ const (
 	maxHeight     int32 = 700
 	// коэффициент уменьшения ширины и высоты, расчитывается как максимальная ширина реального экрана деленная на этот коэф
 	// k        float32 = float32(3) / float32(5)
-	k        = 0.0
-	modError = "gui"
+	k = 0.0
 )
 
 type guiService struct {
-	types.IApp
+	domain.Apper
 	shutdown    func()
 	ondefer     func()
 	resourceDir string
@@ -45,15 +46,15 @@ type guiService struct {
 
 // var _ entity.GuiService = &guiService{}
 
-func New(resourceDir string, a types.IApp) entity.GuiService {
+func New(resourceDir string, a domain.Apper, repo *repo.Repository) (gs *guiService, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			panic(fmt.Errorf("%s New panic %v", modError, r))
+			err = fmt.Errorf("gui New panic %v", r)
 		}
 	}()
 
 	s := &guiService{
-		IApp: a,
+		Apper: a,
 	}
 	s.niActions = make([]*walk.Action, 0)
 	s.resourceDir = resourceDir
@@ -89,8 +90,8 @@ func New(resourceDir string, a types.IApp) entity.GuiService {
 		s.Y = 0
 	}
 	// дерево меню инициализируем до создания главного окна
-	s.tvm = views.CreateTreeMenu(s.IApp)
-	return s
+	s.tvm = views.CreateTreeMenu(s.Apper, repo)
+	return s, err
 }
 
 func (s *guiService) AddAction(a *walk.Action) {
@@ -109,13 +110,12 @@ func (s *guiService) SetShutdown(f func()) {
 	s.shutdown = f
 }
 
-func (s *guiService) NewMainWindow() *walk.MainWindow {
-	var err error
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		err = fmt.Errorf("gui:mainwindow panic %v", r)
-	// 	}
-	// }()
+func (s *guiService) NewMainWindow() (winn *walk.MainWindow, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("gui:newmainwindow panic %v", r)
+		}
+	}()
 
 	walk.Resources.SetRootDirPath(s.resourceDir)
 	cfg := &mainwindow.MainWindowConfig{
@@ -131,37 +131,37 @@ func (s *guiService) NewMainWindow() *walk.MainWindow {
 	w := mainwindow.New(s, s.tvm)
 
 	if s.tvm == nil {
-		panic(fmt.Errorf("%s tree view not install", modError))
+		return nil, fmt.Errorf("gui tree view not install")
 	}
 
 	w.Cfg = cfg
 
 	if err = w.Create(); err != nil {
-		panic(fmt.Errorf("%s %s", modError, err))
+		return nil, fmt.Errorf("gui window create %s", err)
 	}
 	s.MainWindow = w
 
 	svgIcon, err := resource.New(s).Svg(resource.SvgRequest, color.RGBA{R: 120, G: 120, B: 120, A: 255}, 64, 64)
 	if err != nil {
-		s.Logger().Errorf("mpmw:resource error %s", err)
+		return nil, fmt.Errorf("mpmw:resource error %v", err)
 	}
 	w.SetIcon(svgIcon)
 
 	fontMono, err := walk.NewFont("JetBrains Mono", fontSizePoint, 0)
 	if err != nil {
-		s.Logger().Errorf("gui:walk load font %s", err.Error())
+		return nil, fmt.Errorf("gui:walk load font %s", err.Error())
 	}
 	w.SetFont(fontMono)
 	w.AddDisposable(fontMono)
 
-	x := int((s.ScrWidth - int32(w.Size().Width)) / 2)
-	y := int((s.ScrHeight - int32(w.Size().Height)) / 2)
-	w.SetBounds(walk.Rectangle{
-		X:      x,
-		Y:      y,
-		Width:  w.Size().Width,
-		Height: w.Size().Height,
-	})
+	// x := int((s.ScrWidth - int32(w.Size().Width)) / 2)
+	// y := int((s.ScrHeight - int32(w.Size().Height)) / 2)
+	// w.SetBounds(walk.Rectangle{
+	// 	X:      x,
+	// 	Y:      y,
+	// 	Width:  w.Size().Width,
+	// 	Height: w.Size().Height,
+	// })
 
 	s.updateTitle(s.MainWindow.CurrentPageTitle())
 
@@ -172,9 +172,9 @@ func (s *guiService) NewMainWindow() *walk.MainWindow {
 	// 	return i
 	// })
 
-	w.SetVisible(true)
-	win.SetForegroundWindow(w.Handle())
-	return w.MainWindow
+	// w.SetVisible(true)
+	// win.SetForegroundWindow(w.Handle())
+	return w.MainWindow, nil
 }
 
 func (s *guiService) Closing(canceled *bool, reason walk.CloseReason) {

@@ -34,9 +34,9 @@ func (w *MainWindow) Create() error {
 		Name:     w.Cfg.Name,
 		Title:    w.Cfg.Title,
 		Enabled:  w.Cfg.Enabled,
-		Visible:  false,
-		Font:     w.Cfg.Font,
-		MinSize:  w.Cfg.MinSize,
+		// Visible:  false,
+		Font:    w.Cfg.Font,
+		MinSize: w.Cfg.MinSize,
 		// MaxSize:          w.Cfg.MaxSize,
 		// Size:             dcl.Size{Width: 1000, Height: 700},
 		Size:             w.Cfg.MinSize,
@@ -57,13 +57,13 @@ func (w *MainWindow) Create() error {
 					dcl.HSplitter{
 						Children: []dcl.Widget{
 							dcl.Composite{
-								Layout: dcl.VBox{MarginsZero: true, SpacingZero: true,
+								Layout: dcl.HBox{MarginsZero: true, SpacingZero: true,
 									Margins: dcl.Margins{Left: 5, Top: 0, Right: 0, Bottom: 0}},
-								StretchFactor: 1,
 								Children: []dcl.Widget{
 									dcl.TreeView{
-										AssignTo: &w.tv,
-										Model:    w.Tvm,
+										AssignTo:      &w.tv,
+										StretchFactor: 1,
+										Model:         w.Tvm,
 										OnCurrentItemChanged: func() {
 											defer func() {
 												if r := recover(); r != nil {
@@ -80,10 +80,12 @@ func (w *MainWindow) Create() error {
 								},
 							},
 							dcl.ScrollView{
+								StretchFactor: 6,
+								MinSize:       dcl.Size{Width: 300},
 								Layout: dcl.VBox{MarginsZero: true, SpacingZero: true,
 									Margins: dcl.Margins{Left: 0, Top: 0, Right: 5, Bottom: 0}},
-								Background:    dcl.SolidColorBrush{Color: walk.RGB(255, 255, 255)},
-								StretchFactor: 5,
+								Background: dcl.SolidColorBrush{Color: walk.RGB(255, 255, 255)},
+								// StretchFactor: 5,
 								Children: []dcl.Widget{
 									dcl.Composite{
 										AssignTo: &w.pageCom,

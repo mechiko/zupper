@@ -208,3 +208,8 @@ func (a *app) LogPath() string {
 	}
 	return ""
 }
+
+func (a *app) BaseUrl() string {
+	uri := fmt.Sprintf("http://%s:%s", a.options.Hostname, a.options.HostPort)
+	return uri
+}
