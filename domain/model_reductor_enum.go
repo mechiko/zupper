@@ -11,7 +11,7 @@ const (
 
 func IsValidModel(s string) bool {
 	switch Model(s) {
-	case Setup:
+	case Setup, Application, TrueClient, StatusBar:
 		return true
 	default:
 		return false

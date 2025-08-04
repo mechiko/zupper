@@ -31,7 +31,7 @@ func (s *guiService) Run(ctx context.Context) (err error) {
 	reductor.Instance().SetOutChanState(s.MainWindow.InChangeModel)
 	s.MainWindow.Starting().Attach(func() {
 		// здесь можно что то сделать при запуске главного окна
-		go s.MainWindow.StartTicker(ticketStateChange)
+		s.MainWindow.StartTicker(ticketStateChange)
 	})
 
 	if codeExit := s.MainWindow.Run(); codeExit != 0 {

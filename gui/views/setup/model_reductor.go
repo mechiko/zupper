@@ -45,7 +45,7 @@ func (m *SetupModel) ReadFromModel() (err error) {
 	}()
 	var model SetupModel
 	if reductor.Instance().IsExistModel(m.Model) {
-		reductorModel := reductor.Instance().Model(domain.Setup)
+		reductorModel := reductor.Instance().Model(m.Model)
 		mdl, ok := reductorModel.(SetupModel)
 		if !ok {
 			return fmt.Errorf("setupModel read: модель другая %T", reductorModel)

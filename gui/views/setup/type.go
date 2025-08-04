@@ -11,7 +11,7 @@ import (
 	"github.com/mechiko/walk"
 )
 
-const modError = "gui:view:home"
+const modError = "gui:view:setup"
 
 type HomePage struct {
 	*walk.Composite

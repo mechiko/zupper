@@ -12,7 +12,12 @@ import (
 
 // вызывается при смене страницы
 func (w *MainWindow) changePage() error {
-	menu := w.tv.CurrentItem().(*types.AppMenu)
+	currentItem := w.tv.CurrentItem()
+	menu, ok := currentItem.(*types.AppMenu)
+	if !ok {
+		return fmt.Errorf("mainwindows changePage: unexpected menu type %T", currentItem)
+	}
+	// если action для пункта меню не установлено, то не меняем страницу и пункт меню
 	if menu.Action() == nil {
 		return nil
 	}
@@ -101,9 +106,11 @@ func (w *MainWindow) DisposeChildren(wtest walk.Container) (err error) {
 // каждый тик проверяем канал на входящие сообщения
 func (w *MainWindow) StartTicker(period time.Duration) {
 	w.ticker = time.NewTicker(period)
-	for range w.ticker.C {
-		w.tick()
-	}
+	go func() {
+		for range w.ticker.C {
+			w.tick()
+		}
+	}()
 }
 
 func (w *MainWindow) StopTicker() {
@@ -113,7 +120,12 @@ func (w *MainWindow) StopTicker() {
 }
 
 func (w *MainWindow) SendChanel(m domain.Model) {
-	w.InChangeModel <- m
+	select {
+	case w.InChangeModel <- m:
+		// Message sent successfully
+	default:
+		w.Logger().Warnf("Channel buffer full, dropping model update: %s", m)
+	}
 }
 
 func (w *MainWindow) tick() {

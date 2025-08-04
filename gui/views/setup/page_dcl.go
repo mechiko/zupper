@@ -158,7 +158,9 @@ func (p *HomePage) dclCreate(parent walk.Container, model *SetupModel) error {
 						// OnClicked: p.saveConfig,
 						OnClicked: func() {
 							// отправляем обновление своей модели в канал
-							p.sendChan(p.model)
+							if p.sendChan != nil {
+								p.sendChan(p.model)
+							}
 						},
 					},
 					dcl.PushButton{

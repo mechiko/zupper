@@ -2,7 +2,6 @@ package setup
 
 import (
 	"fmt"
-	"zupper/domain"
 	"zupper/reductor"
 )
 
@@ -28,7 +27,7 @@ func (p *HomePage) PageModel() interface{} {
 // если ошибка чтения модели то возвращаем модель из приложения
 func (p *HomePage) Model() (*SetupModel, error) {
 	if reductor.Instance().IsExistModel(p.model) {
-		reductorModel := reductor.Instance().Model(domain.Setup)
+		reductorModel := reductor.Instance().Model(p.model)
 		mdl, ok := reductorModel.(SetupModel)
 		if ok {
 			return &mdl, nil
