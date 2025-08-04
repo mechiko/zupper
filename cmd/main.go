@@ -168,8 +168,9 @@ func main() {
 	})
 
 	// GUI
-	gui, err := gui.New("", app, repoStart)
+	guiService, err := gui.New("", app, repoStart)
 	if err != nil {
+		// обрезаем ошибку со стеком
 		errStr := err.Error()
 		arrErr := strings.Split(errStr, "\n")
 		if len(arrErr) > 0 {
@@ -177,31 +178,23 @@ func main() {
 		}
 		app.Logger().Errorf("main:gui.new error:%s", errStr)
 		utility.MessageBox("ошибка создания gui", errStr)
+		// по ошибке уходим на завершение программы
 	} else {
-		if mw, err := gui.NewMainWindow(); err != nil {
+		if mw, err := guiService.NewMainWindow(); err != nil {
 			app.Logger().Errorf("main:walk.newmainwindows error:%s", err.Error())
 			utility.MessageBox("ошибка создания главного окна", err.Error())
 		} else {
 			// вот теперь между созданием главного окна и запуском можем что то менять
 			mw.Starting().Attach(func() {
 				// действия при старте главного окна
-				// if err := mw.Activate(); err != nil {
-				// 	zaplog.Logger.Errorf("main:walk activate error:%s", err.Error())
-				// }
-				// mw.SetVisible(true)
-				// if err := mw.SetFocus(); err != nil {
-				// 	zaplog.Logger.Errorf("main:walk focus error:%s", err.Error())
-				// }
 			})
-			if err := gui.Run(ctx); err != nil {
+			if err := guiService.Run(ctx); err != nil {
 				app.Logger().Errorf("walk:run %s", err.Error())
 			}
 		}
 	}
+
 	app.Logger().Info("main:walk end вызываем cancel()")
-
-	// TODO
-
 	cancel()
 	// ожидание завершения всех в группе
 	if err := group.Wait(); err != nil {
@@ -209,5 +202,6 @@ func main() {
 	} else {
 		fmt.Println("game over!")
 	}
+	// завершаем все логи
 	zl.Shutdown()
 }

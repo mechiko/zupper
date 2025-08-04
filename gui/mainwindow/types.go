@@ -1,41 +1,22 @@
 package mainwindow
 
 import (
+	"fmt"
+	"time"
 	"zupper/domain"
 	"zupper/gui/types"
+	"zupper/repo"
 
 	"github.com/mechiko/walk"
-	dcl "github.com/mechiko/walk/declarative"
 )
 
 const modError = "gui:mainwindow"
 
-type MainWindowConfig struct {
-	Name                 string
-	Enabled              dcl.Property
-	Visible              dcl.Property
-	Font                 dcl.Font
-	MinSize              dcl.Size
-	MaxSize              dcl.Size
-	ContextMenuItems     []dcl.MenuItem
-	OnKeyDown            walk.KeyEventHandler
-	OnKeyPress           walk.KeyEventHandler
-	OnKeyUp              walk.KeyEventHandler
-	OnMouseDown          walk.MouseEventHandler
-	OnMouseMove          walk.MouseEventHandler
-	OnMouseUp            walk.MouseEventHandler
-	OnSizeChanged        walk.EventHandler
-	OnCurrentPageChanged walk.EventHandler
-	Title                string
-	Size                 dcl.Size
-	MenuItems            []dcl.MenuItem
-	ToolBar              dcl.ToolBar
-}
-
 type MainWindow struct {
 	*walk.MainWindow
 	domain.Apper
-	Cfg                         *MainWindowConfig
+	repo *repo.Repository
+
 	Tvm                         *types.AppmenuTreeModel
 	tv                          *walk.TreeView
 	pageCom                     *walk.Composite
@@ -48,16 +29,23 @@ type MainWindow struct {
 	IconRed                     *walk.Icon
 	IconGreen                   *walk.Icon
 	IconWatch                   *walk.Icon
+
+	ticker        *time.Ticker
+	InChangeModel chan domain.Model
 }
 
-func New(app domain.Apper, tree *types.AppmenuTreeModel) *MainWindow {
-
-	w := &MainWindow{
-		Apper: app,
-		Tvm:   tree,
+func New(app domain.Apper, repo *repo.Repository, tree *types.AppmenuTreeModel) (*MainWindow, error) {
+	if app == nil {
+		return nil, fmt.Errorf("gui:new argument app is nil")
 	}
-
-	// регистрируем в редукторе
-	// app.Reductor().RegisterGui(w.ReductorUpdaterGUI)
-	return w
+	if repo == nil {
+		return nil, fmt.Errorf("gui:new argument repo is nil")
+	}
+	w := &MainWindow{
+		Apper:         app,
+		repo:          repo,
+		Tvm:           tree,
+		InChangeModel: make(chan domain.Model, 10),
+	}
+	return w, nil
 }

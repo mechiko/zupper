@@ -2,16 +2,18 @@ package reductor
 
 import (
 	"sync"
+	"zupper/domain"
 
 	"go.uber.org/zap"
 )
 
-type ModelList map[ModelType]interface{}
+type ModelList map[domain.Model]interface{}
 
 type Reductor struct {
-	mutex  sync.Mutex
-	logger *zap.SugaredLogger
-	models ModelList
+	mutex        sync.Mutex
+	logger       *zap.SugaredLogger
+	models       ModelList
+	outStateChan chan domain.Model
 }
 
 var once sync.Once
@@ -25,7 +27,7 @@ func New(logger *zap.SugaredLogger, model interface{}) *Reductor {
 			models: make(ModelList),
 		}
 	})
-	instance.SetModel(Application, model)
+	instance.SetModel(domain.Application, model)
 	return instance
 }
 
@@ -38,4 +40,16 @@ func Instance() *Reductor {
 
 func (rdc *Reductor) Logger() *zap.SugaredLogger {
 	return rdc.logger
+}
+
+// если ли в запомненных моделях данная
+func (rdc *Reductor) IsExistModel(model domain.Model) bool {
+	if _, ok := rdc.models[model]; ok {
+		return true
+	}
+	return false
+}
+
+func (rdc *Reductor) SetOutChanState(out chan domain.Model) {
+	rdc.outStateChan = out
 }

@@ -8,11 +8,6 @@ import (
 	dcl "github.com/mechiko/walk/declarative"
 )
 
-// func (f *ChronicalFilter) Submit() {
-// 	// если использую DataBinder и на структуру по ссылке то он сам обновляет
-// 	core.App().Logger().Debug("Submit ChronicalFilter")
-// }
-
 func (s *guiService) ProgressDialog(pw walk.Form, cb func() int) (ii int, err error) {
 	defer func() {
 		if r := recover(); r != nil {

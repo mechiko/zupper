@@ -2,13 +2,14 @@ package spaserver
 
 import (
 	"fmt"
+	"zupper/domain"
 	"zupper/reductor"
 	"zupper/trueclient"
 )
 
 // при запуске программы первый пинг блокирующий для проверки
 func (s *Server) PingSetup() error {
-	model, ok := reductor.Instance().Model(reductor.TrueClient).(trueclient.TrueClientModel)
+	model, ok := reductor.Instance().Model(domain.TrueClient).(trueclient.TrueClientModel)
 	if !ok {
 		return fmt.Errorf("объект редуктора не соответствует trueclient.TrueClientModel")
 	}
@@ -24,6 +25,6 @@ func (s *Server) PingSetup() error {
 	}
 
 	model.PingSuz = png
-	reductor.Instance().SetModel(reductor.TrueClient, model)
+	reductor.Instance().SetModel(domain.TrueClient, model)
 	return nil
 }

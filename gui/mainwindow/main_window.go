@@ -5,13 +5,9 @@ import (
 	"image/color"
 
 	"zupper/gui/resource"
-
-	"github.com/mechiko/walk"
-	dcl "github.com/mechiko/walk/declarative"
 )
 
-func (w *MainWindow) Create() error {
-	var err error
+func (w *MainWindow) Create(cfg *MainWindowConfig) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("%s Create %v", modError, r)
@@ -29,111 +25,8 @@ func (w *MainWindow) Create() error {
 		w.IconGreen = svgIcon
 	}
 
-	if err := (dcl.MainWindow{
-		AssignTo: &w.MainWindow,
-		Name:     w.Cfg.Name,
-		Title:    w.Cfg.Title,
-		Enabled:  w.Cfg.Enabled,
-		// Visible:  false,
-		// Font:    w.Cfg.Font,
-		Font:    dcl.Font{Family: "Verdana", PointSize: 12},
-		MinSize: w.Cfg.MinSize,
-		// MaxSize:          w.Cfg.MaxSize,
-		// Size:             dcl.Size{Width: 1000, Height: 700},
-		Size:             w.Cfg.MinSize,
-		MenuItems:        w.Cfg.MenuItems,
-		ToolBar:          w.Cfg.ToolBar,
-		ContextMenuItems: w.Cfg.ContextMenuItems,
-		OnKeyDown:        w.Cfg.OnKeyDown,
-		OnKeyPress:       w.Cfg.OnKeyPress,
-		OnKeyUp:          w.Cfg.OnKeyUp,
-		OnMouseDown:      w.Cfg.OnMouseDown,
-		OnMouseMove:      w.Cfg.OnMouseMove,
-		OnMouseUp:        w.Cfg.OnMouseUp,
-		Layout:           dcl.HBox{MarginsZero: true, SpacingZero: true},
-		Children: []dcl.Widget{
-			dcl.Composite{
-				Layout: dcl.HBox{MarginsZero: true, SpacingZero: true},
-				Children: []dcl.Widget{
-					dcl.HSplitter{
-						Children: []dcl.Widget{
-							dcl.Composite{
-								Layout: dcl.HBox{MarginsZero: true, SpacingZero: true,
-									Margins: dcl.Margins{Left: 5, Top: 0, Right: 0, Bottom: 0}},
-								Children: []dcl.Widget{
-									dcl.TreeView{
-										AssignTo:      &w.tv,
-										StretchFactor: 1,
-										Model:         w.Tvm,
-										OnCurrentItemChanged: func() {
-											defer func() {
-												if r := recover(); r != nil {
-													w.Logger().Errorf("TV change page panic %v", r)
-													panic(fmt.Errorf("TV change page panic %v", r))
-													// TODO Shutdown
-												}
-											}()
-											if err := w.сhangePage(); err != nil {
-												w.Logger().Errorf("TV change page error %s", err.Error())
-											}
-										},
-									},
-								},
-							},
-							dcl.ScrollView{
-								StretchFactor: 6,
-								MinSize:       dcl.Size{Width: 300},
-								Layout: dcl.VBox{MarginsZero: true, SpacingZero: true,
-									Margins: dcl.Margins{Left: 0, Top: 0, Right: 5, Bottom: 0}},
-								Background: dcl.SolidColorBrush{Color: walk.RGB(255, 255, 255)},
-								// StretchFactor: 5,
-								Children: []dcl.Widget{
-									dcl.Composite{
-										AssignTo: &w.pageCom,
-										Name:     "placePage",
-										Layout:   dcl.VBox{MarginsZero: true, SpacingZero: true},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		StatusBarItems: []dcl.StatusBarItem{
-			{
-				AssignTo:  &w.SbiLicense,
-				Width:     100,
-				Text:      "",
-				OnClicked: w.SbiLicensePress,
-			},
-			{
-				AssignTo: &w.SbiScan,
-				Width:    100,
-				// ToolTipText: "Автоматический прием документов в УТМ",
-				// OnClicked: w.SbiScanPress,
-			},
-			{
-				AssignTo: &w.SbiFsrarId,
-				Width:    120,
-				// ToolTipText: "ФСРАР ИД УТМ",
-				OnClicked: w.SbiFsrarIdPress,
-			},
-			{
-				AssignTo: &w.SbiUtmState,
-				Width:    100,
-				// ToolTipText: "Статус УТМ",
-				OnClicked: w.SbiUtmPress,
-			},
-			{
-				AssignTo:  &w.SbiState,
-				Width:     400,
-				Text:      "",
-				OnClicked: w.clickHistoryState,
-			},
-		},
-	}).Create(); err != nil {
-		return fmt.Errorf(`w.Create() %w`, err)
+	if err := w.dclCreate(cfg); err != nil {
+		return err
 	}
 	succeeded := false
 	defer func() {
@@ -141,10 +34,14 @@ func (w *MainWindow) Create() error {
 			w.Dispose()
 		}
 	}()
-
-	w.tv.SetCurrentItem(w.Tvm.DefaultMenu())
-	w.CurrentPageChanged().Attach(w.Cfg.OnCurrentPageChanged)
+	if w.Tvm != nil {
+		w.tv.SetCurrentItem(w.Tvm.DefaultMenu())
+	} else {
+		return fmt.Errorf("mainwindow AppmenuTreeModel is nil")
+	}
+	w.CurrentPageChanged().Attach(cfg.OnCurrentPageChanged)
 	succeeded = true
-	w.сhangePage()
+	w.changePage()
+	// if recover block present then return err
 	return err
 }

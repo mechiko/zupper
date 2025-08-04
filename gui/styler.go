@@ -135,7 +135,7 @@ func (s *Styler) StyleItem(style *walk.ListItemStyle) {
 		stampSize := s.StampSize()
 
 		x := b.X + stampSize.Width + marginH + lineW
-		canvas.DrawLinePixels(pen, walk.Point{x, b.Y - marginV}, walk.Point{x, b.Y - marginV + b.Height})
+		canvas.DrawLinePixels(pen, walk.Point{X: x, Y: b.Y - marginV}, walk.Point{X: x, Y: b.Y - marginV + b.Height})
 
 		b.X += stampSize.Width + marginH*2 + lineW
 		b.Width -= stampSize.Width + marginH*4 + lineW

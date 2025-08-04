@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	fontSizePoint       = 11
+	fontSizePoint       = 12
 	maxWidth      int32 = 1100
 	maxHeight     int32 = 700
 	// коэффициент уменьшения ширины и высоты, расчитывается как максимальная ширина реального экрана деленная на этот коэф
@@ -28,6 +28,8 @@ const (
 
 type guiService struct {
 	domain.Apper
+	repo *repo.Repository
+
 	shutdown    func()
 	ondefer     func()
 	resourceDir string
@@ -44,8 +46,6 @@ type guiService struct {
 	Y           int32
 }
 
-// var _ entity.GuiService = &guiService{}
-
 func New(resourceDir string, a domain.Apper, repo *repo.Repository) (gs *guiService, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -53,8 +53,15 @@ func New(resourceDir string, a domain.Apper, repo *repo.Repository) (gs *guiServ
 		}
 	}()
 
+	if a == nil {
+		return nil, fmt.Errorf("gui:newservice argument app is nil")
+	}
+	if repo == nil {
+		return nil, fmt.Errorf("gui:newservice argument repo is nil")
+	}
 	s := &guiService{
 		Apper: a,
+		repo:  repo,
 	}
 	s.niActions = make([]*walk.Action, 0)
 	s.resourceDir = resourceDir
@@ -63,8 +70,6 @@ func New(resourceDir string, a domain.Apper, repo *repo.Repository) (gs *guiServ
 	hDC := win.GetDC(0)
 	defer win.ReleaseDC(0, hDC)
 
-	// s.ScrWidth = int(win.GetDeviceCaps(hDC, win.HORZRES))
-	// s.ScrHeight = int(win.GetDeviceCaps(hDC, win.VERTRES))
 	s.ScrWidth = win.GetSystemMetrics(win.SM_CXSCREEN)
 	s.ScrHeight = win.GetSystemMetrics(win.SM_CYSCREEN)
 	if k > 0 {
@@ -91,6 +96,9 @@ func New(resourceDir string, a domain.Apper, repo *repo.Repository) (gs *guiServ
 	}
 	// дерево меню инициализируем до создания главного окна
 	s.tvm = views.CreateTreeMenu(s.Apper, repo)
+	if s.tvm == nil {
+		return nil, fmt.Errorf("gui tree view not install")
+	}
 	return s, err
 }
 
@@ -118,35 +126,35 @@ func (s *guiService) NewMainWindow() (winn *walk.MainWindow, err error) {
 	}()
 
 	walk.Resources.SetRootDirPath(s.resourceDir)
-	cfg := &mainwindow.MainWindowConfig{
+	cfgWindow := &mainwindow.MainWindowConfig{
 		Name:    "mainWindow",
 		MinSize: dcl.Size{Width: int(s.Width), Height: int(s.Height)},
 		MaxSize: dcl.Size{Width: int(s.Width), Height: int(s.Height)},
 		OnCurrentPageChanged: func() {
 			s.updateTitle(s.MainWindow.CurrentPageTitle())
 		},
+		Font:    dcl.Font{Family: "Verdana", PointSize: fontSizePoint},
 		Visible: true,
 	}
 
-	w := mainwindow.New(s, s.tvm)
-
-	if s.tvm == nil {
-		return nil, fmt.Errorf("gui tree view not install")
+	s.MainWindow, err = mainwindow.New(s, s.repo, s.tvm)
+	if err != nil {
+		return nil, fmt.Errorf("gui window new %s", err)
 	}
 
-	w.Cfg = cfg
-
-	if err = w.Create(); err != nil {
+	if err = s.MainWindow.Create(cfgWindow); err != nil {
 		return nil, fmt.Errorf("gui window create %s", err)
 	}
-	s.MainWindow = w
 
+	// устанавливаем иконку окна генерируем из svg
 	svgIcon, err := resource.New(s).Svg(resource.SvgRequest, color.RGBA{R: 120, G: 120, B: 120, A: 255}, 64, 64)
 	if err != nil {
 		return nil, fmt.Errorf("mpmw:resource error %v", err)
 	}
-	w.SetIcon(svgIcon)
+	s.MainWindow.SetIcon(svgIcon)
 
+	// такая установка шрифта делает большую паузу при запуске программы
+	// легче установить его в построителе окна
 	// fontMono, err := walk.NewFont("JetBrains Mono", fontSizePoint, 0)
 	// if err != nil {
 	// 	return nil, fmt.Errorf("gui:walk load font %s", err.Error())
@@ -154,27 +162,19 @@ func (s *guiService) NewMainWindow() (winn *walk.MainWindow, err error) {
 	// w.SetFont(fontMono)
 	// w.AddDisposable(fontMono)
 
-	x := int((s.ScrWidth - int32(w.Size().Width)) / 2)
-	y := int((s.ScrHeight - int32(w.Size().Height)) / 2)
-	w.SetBounds(walk.Rectangle{
+	x := int((s.ScrWidth - int32(s.MainWindow.Size().Width)) / 2)
+	y := int((s.ScrHeight - int32(s.MainWindow.Size().Height)) / 2)
+	s.MainWindow.SetBounds(walk.Rectangle{
 		X:      x,
 		Y:      y,
-		Width:  w.Size().Width,
-		Height: w.Size().Height,
+		Width:  s.MainWindow.Size().Width,
+		Height: s.MainWindow.Size().Height,
 	})
 
 	s.updateTitle(s.MainWindow.CurrentPageTitle())
 
-	w.MainWindow.Closing().Attach(s.Closing)
-	// i := 1
-	// s.ProgressDialog(w, func() int {
-	// 	i += 5
-	// 	return i
-	// })
-
-	// w.SetVisible(true)
-	// win.SetForegroundWindow(w.Handle())
-	return w.MainWindow, nil
+	s.MainWindow.MainWindow.Closing().Attach(s.Closing)
+	return s.MainWindow.MainWindow, nil
 }
 
 func (s *guiService) Closing(canceled *bool, reason walk.CloseReason) {
@@ -217,6 +217,7 @@ func (s *guiService) GetMainWindow() *walk.MainWindow {
 	return s.MainWindow.MainWindow
 }
 
-func (s *guiService) Shutdown() {
-	s.MainWindow.Close()
+func (s *guiService) Shutdown() error {
+	s.MainWindow.StopTicker()
+	return s.MainWindow.Close()
 }

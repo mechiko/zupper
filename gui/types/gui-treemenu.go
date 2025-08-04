@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"zupper/domain"
-	"zupper/gui/resource"
 
 	"github.com/mechiko/walk"
 )
@@ -82,19 +81,19 @@ func (a *AppMenu) ChildAt(index int) walk.TreeItem {
 	return a.children[index]
 }
 
-func (a *AppMenu) findIcon() interface{} {
-	if name, ok := a.image.(string); ok {
-		if name == "" {
-			return name
-		}
-		if icon, err := resource.New(a).Icon(name); err != nil {
-			a.Logger().Errorf("gui:appmenu error %s", err.Error())
-		} else {
-			return icon
-		}
-	}
-	return ""
-}
+// func (a *AppMenu) findIcon() interface{} {
+// 	if name, ok := a.image.(string); ok {
+// 		if name == "" {
+// 			return name
+// 		}
+// 		if icon, err := resource.New(a).Icon(name); err != nil {
+// 			a.Logger().Errorf("gui:appmenu error %s", err.Error())
+// 		} else {
+// 			return icon
+// 		}
+// 	}
+// 	return ""
+// }
 
 func (a *AppMenu) Image() interface{} {
 	// if a.action != nil {

@@ -42,10 +42,10 @@ func New(a domain.Apper) (s *trueClient) {
 
 	// при запуске программы модель должна быть инициализирована
 	// здесь мы уже получаем ее существующую
-	model, ok := reductor.Instance().Model(reductor.TrueClient).(TrueClientModel)
+	model, ok := reductor.Instance().Model(domain.TrueClient).(TrueClientModel)
 	if !ok {
-		strErr := fmt.Sprintf("reductor model trueclient wrong type %T", reductor.Instance().Model(reductor.TrueClient))
-		a.Logger().Errorf("reductor model trueclient wrong type %T", reductor.Instance().Model(reductor.TrueClient))
+		strErr := fmt.Sprintf("reductor model trueclient wrong type %T", reductor.Instance().Model(domain.TrueClient))
+		a.Logger().Errorf("reductor model trueclient wrong type %T", reductor.Instance().Model(domain.TrueClient))
 		panic(strErr)
 	}
 	s = &trueClient{

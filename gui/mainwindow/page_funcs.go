@@ -2,19 +2,24 @@ package mainwindow
 
 import (
 	"fmt"
+	"time"
 
+	"zupper/domain"
 	"zupper/gui/types"
 
 	"github.com/mechiko/walk"
 )
 
 // вызывается при смене страницы
-func (w *MainWindow) сhangePage() error {
+func (w *MainWindow) changePage() error {
 	menu := w.tv.CurrentItem().(*types.AppMenu)
 	if menu.Action() == nil {
 		return nil
 	}
-	return w.SetCurrentMenu(menu)
+	if err := w.SetCurrentMenu(menu); err != nil {
+		return fmt.Errorf("mainwindows SetCurrentMenu %w", err)
+	}
+	return nil
 }
 
 func (w *MainWindow) CurrentPageTitle() string {
@@ -42,12 +47,6 @@ func (w *MainWindow) SetCurrentMenu(pageMenu *types.AppMenu) error {
 
 	if prevPage == nil {
 		// еще меню не выставилось значит первый запуск и активация первого меню
-		// msg := entity.Message{
-		// 	Sender: "mainwindow.SetCurrentMenu",
-		// 	Cmd:    "first",
-		// 	Model:  nil,
-		// }
-		// w.IApp.Effects().ChanIn() <- msg
 	}
 
 	if prevPage != nil {
@@ -66,36 +65,17 @@ func (w *MainWindow) SetCurrentMenu(pageMenu *types.AppMenu) error {
 		w.DisposeChildren(w.pageCom)
 	}
 
-	page, err := newPage(w.pageCom, w.Apper)
+	page, err := newPage(w.pageCom, w.Apper, w.repo)
 	if err != nil {
 		return fmt.Errorf("newPage(w.pageCom) %w", err)
 	}
+	page.SetSendFunc(w.SendChanel)
 
 	w.Tvm.SetCurrentPage(page)
 	w.Tvm.CurrentMenu = pageMenu
-	// через редуктор вызываем обновление состояния GUI
-	// запрашиваем текущее состояние в редукторе которое прилетит в обновление
-	// каждый вид пересоздается при активации поэтому надо состояние присылать
-	// msg := entity.Message{
-	// 	Sender: "mainwindow.SetCurrentMenu",
-	// 	Cmd:    pageMenu.Class(),
-	// 	Model:  nil,
-	// }
-	// w.IApp.Effects().ChanIn() <- msg
-	// w.Logger().Debugf("%s reductor chanin msg %s", modError, msg.Cmd)
-	// msg = entity.Message{
-	// 	Sender: "mainwindow.SetCurrentMenu",
-	// 	Cmd:    "license",
-	// 	Model:  nil,
-	// }
-	// w.IApp.Effects().ChanIn() <- msg
-	// w.Logger().Debugf("%s effects chanin msg %s", modError, msg.Cmd)
-
 	// создаем событие смены страницы
 	w.currentPageChangedPublisher.Publish()
-
-	w.SetFocus()
-
+	// w.SetFocus()
 	return nil
 }
 
@@ -116,4 +96,39 @@ func (w *MainWindow) DisposeChildren(wtest walk.Container) (err error) {
 		w.Dispose()
 	}
 	return nil
+}
+
+// каждый тик проверяем канал на входящие сообщения
+func (w *MainWindow) StartTicker(period time.Duration) {
+	w.ticker = time.NewTicker(period)
+	for range w.ticker.C {
+		w.tick()
+	}
+}
+
+func (w *MainWindow) StopTicker() {
+	if w.ticker != nil {
+		w.ticker.Stop()
+	}
+}
+
+func (w *MainWindow) SendChanel(m domain.Model) {
+	w.InChangeModel <- m
+}
+
+func (w *MainWindow) tick() {
+	select {
+	case m := <-w.InChangeModel:
+		w.Logger().Debugf("chanel receive model chang state %s", m)
+		switch m {
+		case domain.StatusBar:
+		default:
+
+		}
+		w.Synchronize(func() {
+			page := w.Tvm.CurrentPage()
+			page.Update()
+		})
+	default:
+	}
 }
