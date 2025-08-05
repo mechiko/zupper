@@ -28,7 +28,7 @@ func (w *MainWindow) changePage() error {
 }
 
 func (w *MainWindow) CurrentPageTitle() string {
-	if w.Tvm.CurrentPage() == nil {
+	if w.Tvm.CurrentMenu == nil {
 		return ""
 	}
 	return w.Tvm.CurrentMenu.Name()
@@ -57,14 +57,19 @@ func (w *MainWindow) SetCurrentMenu(pageMenu *types.AppMenu) error {
 	if prevPage != nil {
 		w.pageCom.SaveState()
 		prevPage.SetVisible(false)
-		prevPage.(walk.Widget).SetParent(nil)
+		if widget, ok := prevPage.(walk.Widget); ok {
+			widget.SetParent(nil)
+		}
 		prevPage.Disposing().Attach(func() {
 		})
 		prevPage.Dispose()
 		prevPage.Clear()
 	}
 
-	newPage := w.Tvm.Menu2NewPage[pageMenu]
+	newPage, exists := w.Tvm.Menu2NewPage[pageMenu]
+	if !exists {
+		return fmt.Errorf("no page factory found for menu: %s", pageMenu.Name())
+	}
 
 	if w.pageCom.Children().Len() > 0 {
 		w.DisposeChildren(w.pageCom)
@@ -139,6 +144,10 @@ func (w *MainWindow) tick() {
 		}
 		w.Synchronize(func() {
 			page := w.Tvm.CurrentPage()
+			if page == nil {
+				w.Logger().Warn("tick: no current page to update")
+				return
+			}
 			page.Update()
 		})
 	default:
