@@ -2,58 +2,36 @@ package setup
 
 import (
 	"fmt"
+	"zupper/domain/models/application"
 	"zupper/reductor"
+	"zupper/utility"
 )
 
-// создаем новую модель для редуктора, читаем приложение
-// и возвращаем структуру
-func (p *HomePage) newPageModel() (SetupModel, error) {
-	m := &SetupModel{
-		Title: "Настройка",
-	}
-	if err := m.ReadApplication(p.Apper, p.repo); err != nil {
-		return SetupModel{}, fmt.Errorf("view:setup ошибка чтения из приложения %w", err)
-	}
-	return *m, nil
-}
-
 // возращаем указатель на модель полученную из редуктора
-func (p *HomePage) PageModel() interface{} {
-	model := reductor.Instance().Model(p.model)
-	return &model
+func (p *HomePage) PageModel() (interface{}, error) {
+	model, err := reductor.Instance().Model(p.model)
+	if err != nil {
+		return nil, fmt.Errorf("view:setup pagemodel %w", err)
+	}
+	return model, nil
 }
 
 // с преобразованием
 // если ошибка чтения модели то возвращаем модель из приложения
-func (p *HomePage) Model() (*SetupModel, error) {
+func (p *HomePage) Model() (*application.Application, error) {
 	if reductor.Instance().IsExistModel(p.model) {
-		reductorModel := reductor.Instance().Model(p.model)
-		mdl, ok := reductorModel.(SetupModel)
-		if ok {
-			return &mdl, nil
-		} else {
-			return nil, fmt.Errorf("view:setup Model другой тип в редукторе %T", mdl)
+		reductorModel, err := reductor.Instance().Model(p.model)
+		if err != nil {
+			return nil, fmt.Errorf("%w", err)
+		}
+		if utility.IsPointer(reductorModel) {
+			mdl, ok := reductorModel.(*application.Application)
+			if ok {
+				return mdl, nil
+			} else {
+				return nil, fmt.Errorf("view:setup Model другой тип в редукторе %T", mdl)
+			}
 		}
 	}
 	return nil, fmt.Errorf("view:setup нет такой модели в редукторе")
-}
-
-// сброс модели редуктора для страницы
-// и возвращаем указатель
-func (p *HomePage) ResetData() interface{} {
-	return p.InitData()
-}
-
-func (p *HomePage) ResetValidateData() {
-}
-
-// инициализируем модель страницы и сохраняет под типом своей модели в редукторе
-func (p *HomePage) InitData() interface{} {
-	model, err := p.newPageModel()
-	if err != nil {
-		p.Logger().Errorf("view:home %v", err)
-	}
-	(&model).ReadApplication(p.Apper, p.repo)
-	reductor.Instance().SetModel(p.model, model)
-	return &model
 }

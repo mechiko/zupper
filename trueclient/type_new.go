@@ -42,10 +42,16 @@ func New(a domain.Apper) (s *trueClient) {
 
 	// при запуске программы модель должна быть инициализирована
 	// здесь мы уже получаем ее существующую
-	model, ok := reductor.Instance().Model(domain.TrueClient).(TrueClientModel)
+	reductorModel, err := reductor.Instance().Model(domain.TrueClient)
+	if err != nil {
+		strErr := fmt.Sprintf("reductor trueclient error %w", err)
+		a.Logger().Error(strErr)
+		panic(strErr)
+	}
+	model, ok := reductorModel.(*TrueClientModel)
 	if !ok {
-		strErr := fmt.Sprintf("reductor model trueclient wrong type %T", reductor.Instance().Model(domain.TrueClient))
-		a.Logger().Errorf("reductor model trueclient wrong type %T", reductor.Instance().Model(domain.TrueClient))
+		strErr := fmt.Sprintf("reductor model trueclient wrong type %T", reductorModel)
+		a.Logger().Error(strErr)
 		panic(strErr)
 	}
 	s = &trueClient{
@@ -81,7 +87,7 @@ func New(a domain.Apper) (s *trueClient) {
 			panic(fmt.Sprintf("%s %s", modError, err.Error()))
 		}
 		// сохраняем конфиг в объекте
-		s.Save(&model)
+		s.Save(model)
 		// сохраняем конфиг после авторизации
 		model.Sync(s)
 	}

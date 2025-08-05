@@ -8,6 +8,7 @@ import (
 )
 
 type TrueClientModel struct {
+	model       domain.Model
 	Title       string
 	StandGIS    url.URL
 	StandSUZ    url.URL
@@ -26,6 +27,8 @@ type TrueClientModel struct {
 	MyStore     map[string]string
 	Test        bool
 }
+
+var _ domain.Modeler = (*TrueClientModel)(nil)
 
 type PingSuzInfo struct {
 	OmsId      string `json:"omsId"`
@@ -99,4 +102,26 @@ func (m *TrueClientModel) Read(cfg domain.Apper) (err error) {
 	// 	}
 	// }
 	return nil
+}
+
+func (m *TrueClientModel) Copy() (interface{}, error) {
+	// shallow copy that`s why fields is simple
+	dst := *m
+	dst.MyStore = make(map[string]string)
+	for k, v := range m.MyStore {
+		dst.MyStore[k] = v
+	}
+	dst.Validates = make(map[string]string)
+	for k, v := range m.Validates {
+		dst.MyStore[k] = v
+	}
+	dst.Errors = make([]string, len(m.Errors))
+	copy(dst.Errors, m.Errors)
+	ping := *m.PingSuz
+	dst.PingSuz = &ping
+	return &dst, nil
+}
+
+func (a *TrueClientModel) Model() domain.Model {
+	return a.model
 }

@@ -10,7 +10,7 @@ import (
 
 // если не используется конфиг.дб то всегда совершает авторизацию
 // блокирует реентерабельность до выполнения ClearSingle()
-func NewFromModelSingle(a domain.Apper, model TrueClientModel) (s *trueClient, err error) {
+func NewFromModelSingle(a domain.Apper, model *TrueClientModel) (s *trueClient, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("%w", err)
@@ -73,7 +73,7 @@ func NewFromModelSingle(a domain.Apper, model TrueClientModel) (s *trueClient, e
 			return s, fmt.Errorf("%s %s", modError, err.Error())
 		}
 		// сохраняем конфиг в объекте и редукторе
-		s.Save(&model)
+		s.Save(model)
 		// сохраняем конфиг после авторизации
 		model.Sync(s)
 	}

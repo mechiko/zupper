@@ -2,12 +2,13 @@ package setup
 
 import (
 	"fmt"
+	"zupper/domain/models/application"
 
 	"github.com/mechiko/walk"
 	dcl "github.com/mechiko/walk/declarative"
 )
 
-func (p *HomePage) dclCreate(parent walk.Container, model *SetupModel) error {
+func (p *HomePage) dclCreate(parent walk.Container, model *application.Application) error {
 	if err := (dcl.Composite{
 		AssignTo: &p.Composite,
 		Name:     model.Title,

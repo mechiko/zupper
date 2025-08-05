@@ -10,6 +10,5 @@ func (t *trueClient) Save(model *TrueClientModel) {
 	model.AuthTime = t.authTime
 	model.TokenGIS = t.tokenGis
 	model.TokenSUZ = t.tokenSuz
-	mdl := *model
-	reductor.Instance().SetModel(domain.TrueClient, &mdl)
+	reductor.Instance().SetModel(domain.TrueClient, model)
 }

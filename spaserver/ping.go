@@ -9,7 +9,11 @@ import (
 
 // при запуске программы первый пинг блокирующий для проверки
 func (s *Server) PingSetup() error {
-	model, ok := reductor.Instance().Model(domain.TrueClient).(trueclient.TrueClientModel)
+	reductorModel, err := reductor.Instance().Model(domain.TrueClient)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	model, ok := reductorModel.(*trueclient.TrueClientModel)
 	if !ok {
 		return fmt.Errorf("объект редуктора не соответствует trueclient.TrueClientModel")
 	}

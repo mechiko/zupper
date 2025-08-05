@@ -1,13 +1,14 @@
 package reductor
 
 import (
+	"fmt"
 	"sync"
 	"zupper/domain"
 
 	"go.uber.org/zap"
 )
 
-type ModelList map[domain.Model]interface{}
+type ModelList map[domain.Model]domain.Modeler
 
 type Reductor struct {
 	mutex        sync.Mutex
@@ -19,16 +20,18 @@ type Reductor struct {
 var once sync.Once
 var instance *Reductor
 
-// создаем singleton и передаем модель по умолчанию reductor.Model("")
-func New(logger *zap.SugaredLogger, model interface{}) *Reductor {
+// создаем singleton без начальной модели
+func New(logger *zap.SugaredLogger) (*Reductor, error) {
+	if logger == nil {
+		return nil, fmt.Errorf("reductor: logger is nil")
+	}
 	once.Do(func() {
 		instance = &Reductor{
 			logger: logger,
 			models: make(ModelList),
 		}
 	})
-	instance.SetModel(domain.Application, model)
-	return instance
+	return instance, nil
 }
 
 func Instance() *Reductor {

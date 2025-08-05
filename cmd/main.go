@@ -11,6 +11,7 @@ import (
 	"zupper/app"
 	"zupper/checkdbg"
 	"zupper/config"
+	"zupper/domain/models/application"
 	"zupper/gui"
 	"zupper/reductor"
 	"zupper/repo"
@@ -100,7 +101,10 @@ func main() {
 	if err != nil {
 		errProcessExit("Ошибка получения логера для редуктора", err.Error())
 	}
-	reductor.New(reductorLogger.Sugar(), app.InitModel())
+
+	if _, err := reductor.New(reductorLogger.Sugar()); err != nil {
+		errProcessExit("Ошибка создания редуктора", err.Error())
+	}
 
 	loger.Info("start repo")
 	// инициализируем REPO
@@ -113,6 +117,13 @@ func main() {
 	}
 	app.SetRepo(repoStart)
 
+	appModel, err := application.NewModelApplication(app, repoStart)
+	if err != nil {
+		errProcessExit("Ошибка получения логера для редуктора", err.Error())
+	}
+	if err := reductor.Instance().SetModel(appModel.Model(), appModel); err != nil {
+		errProcessExit("Ошибка редуктора", err.Error())
+	}
 	group.Go(func() error {
 		go func() {
 			<-groupCtx.Done()

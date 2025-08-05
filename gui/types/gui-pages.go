@@ -15,8 +15,6 @@ type Page interface {
 	Parent() walk.Container
 	SetParent(parent walk.Container) error
 	Clear()
-	PageModel() interface{} // *PageModel указатель возвращаем
-	InitData() interface{}  // *PageModel указатель возвращаем
 	Update()
 	SetSendFunc(f func(domain.Model))
 }

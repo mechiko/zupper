@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"zupper/domain"
+	"zupper/domain/models/application"
 	"zupper/gui/types"
 	"zupper/reductor"
 	"zupper/repo"
@@ -43,9 +44,9 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 		Apper:         app,
 		repo:          repo,
 		disableChange: true,
-		model:         domain.Setup,
+		model:         domain.Application,
 	}
-	var model *SetupModel
+	var model *application.Application
 	// инициализируем модель и сохраняем в редукторе
 	// если таковой еще нет в нем, предохраняется модель уже созданная и рабочая
 	if reductor.Instance().IsExistModel(p.model) {
@@ -54,10 +55,11 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 			return nil, fmt.Errorf("%w", err)
 		}
 	} else {
-		model = p.InitData().(*SetupModel)
+		return nil, fmt.Errorf("view:setup new нет в редукторе модели %s", p.model)
 	}
 	if err = p.dclCreate(parent, model); err != nil {
 		return nil, fmt.Errorf("page setup dcl create %w", err)
 	}
 	return p, err
 }
+
