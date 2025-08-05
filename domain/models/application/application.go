@@ -29,14 +29,14 @@ var _ domain.Modeler = (*Application)(nil)
 
 // создаем модель считываем ее состояние и возвращаем указатель
 func New(app domain.Apper, repo *repo.Repository) (*Application, error) {
-	model := Application{
+	model := &Application{
 		model: domain.Application,
 		Title: "Application Title",
 	}
 	if err := model.ReadState(app, repo); err != nil {
 		return nil, fmt.Errorf("model application read state %w", err)
 	}
-	return &model, nil
+	return model, nil
 }
 
 // синхронизирует с приложением в сторону приложения из модели редуктора

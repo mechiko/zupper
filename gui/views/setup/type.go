@@ -32,6 +32,7 @@ type HomePage struct {
 	lblDbA3     *walk.Label
 }
 
+// обязательный для реализации интерфейса types.Page
 // герератор страницы при активации в меню
 // берем данные из модели страницы в редукторе и заполняем
 func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp types.Page, err error) {
@@ -63,3 +64,5 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 	return p, err
 }
 
+func (p *HomePage) changeIndexBrowser() {
+}

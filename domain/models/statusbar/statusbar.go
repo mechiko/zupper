@@ -18,13 +18,13 @@ var _ domain.Modeler = (*StatusBar)(nil)
 
 // создаем модель считываем ее состояние и возвращаем указатель
 func New(app domain.Apper, repo *repo.Repository) (*StatusBar, error) {
-	model := StatusBar{
+	model := &StatusBar{
 		model: domain.StatusBar,
 	}
 	if err := model.ReadState(app, repo); err != nil {
 		return nil, fmt.Errorf("model statusbar read state %w", err)
 	}
-	return &model, nil
+	return model, nil
 }
 
 // синхронизирует с приложением в сторону приложения из модели редуктора

@@ -11,14 +11,14 @@ import (
 	// "zupper/gui/views/kontragent"
 	// "zupper/gui/views/maintain"
 	// "zupper/gui/views/reports"
-	// "zupper/gui/views/znak"
 	"zupper/gui/views/setup"
+	"zupper/gui/views/znak"
 	"zupper/repo"
 )
 
 var pages = map[string]types.PageConfig{
 	"Setup": {Title: "Настройки", Image: "104", NewPage: setup.New, Class: "setup"},
-	// "Znak":          {Title: "Коробки", Image: "PngKfh", NewPage: znak.NewPage, Class: "znak"},
+	"Znak":  {Title: "Коробки", Image: "PngKfh", NewPage: znak.New, Class: "znak"},
 	// "ImportTTN":     {Title: "Импорт ТТН", Image: "PngRequester", NewPage: importvoot.NewPage, Class: "importttn"},
 	// "ImportTTNUtsz": {Title: "Импорт ТТН", Image: "PngRequester", NewPage: importutsz.NewPage, Class: "importttnutsz"},
 	// "Reports":       {Title: "Отчеты", Image: "104", NewPage: reports.NewPage, Class: "reports"},
@@ -27,6 +27,7 @@ var pages = map[string]types.PageConfig{
 }
 
 func CreateTreeMenu(app domain.Apper, repo *repo.Repository) *types.AppmenuTreeModel {
+	var trueZnakMenu *types.AppMenu
 	// var importMenu, trueZnakMenu, reportsMenu *types.AppMenu
 
 	tvm := types.NewAppMenuTreeModel()
@@ -34,12 +35,12 @@ func CreateTreeMenu(app domain.Apper, repo *repo.Repository) *types.AppmenuTreeM
 	setup := tvm.NewRootAppMenu(app, page1, page1.NewPage, imageMenu(app, page1.Image))
 	tvm.Menu2NewPage[setup] = page1.NewPage
 
-	// if repo.IsZnak() {
-	// 	menu20 := tvm.NewRootMenu("ЧЗ", nil, "103")
-	// 	page21 := pages["Znak"]
-	// 	trueZnakMenu = menu20.AddChild(app, page21, page21.NewPage, imageMenu(app, page21.Image))
-	// 	tvm.Menu2NewPage[trueZnakMenu] = page21.NewPage
-	// }
+	if repo.IsZnak() {
+		menu20 := tvm.NewRootMenu("ЧЗ", nil, "103")
+		page21 := pages["Znak"]
+		trueZnakMenu = menu20.AddChild(app, page21, page21.NewPage, imageMenu(app, page21.Image))
+		tvm.Menu2NewPage[trueZnakMenu] = page21.NewPage
+	}
 	// if repo.IsA3() {
 	// 	menu30 := tvm.NewRootMenu("АлкоХелп3", nil, "103")
 	// 	page32 := pages["Reports"]

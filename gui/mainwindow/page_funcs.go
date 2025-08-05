@@ -77,6 +77,7 @@ func (w *MainWindow) SetCurrentMenu(pageMenu *types.AppMenu) error {
 	if err != nil {
 		return fmt.Errorf("newPage(w.pageCom) %w", err)
 	}
+	// через эту функцию прописываем метод отправки в канал смены состояния
 	page.SetSendFunc(w.SendChanel)
 
 	w.Tvm.SetCurrentPage(page)
