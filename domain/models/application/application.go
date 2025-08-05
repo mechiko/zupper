@@ -28,7 +28,7 @@ type Application struct {
 var _ domain.Modeler = (*Application)(nil)
 
 // создаем модель считываем ее состояние и возвращаем указатель
-func NewModelApplication(app domain.Apper, repo *repo.Repository) (*Application, error) {
+func New(app domain.Apper, repo *repo.Repository) (*Application, error) {
 	model := Application{
 		model: domain.Application,
 		Title: "Application Title",

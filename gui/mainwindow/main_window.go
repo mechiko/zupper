@@ -34,6 +34,13 @@ func (w *MainWindow) Create(cfg *MainWindowConfig) (err error) {
 			w.Dispose()
 		}
 	}()
+	fontMain := w.Font()
+	if fontMain != nil {
+		w.Logger().Errorf("gui:mainwindow font %v", err)
+	} else {
+		w.StatusBar().SetFont(fontMain)
+	}
+
 	if w.Tvm != nil {
 		w.tv.SetCurrentItem(w.Tvm.DefaultMenu())
 	} else {

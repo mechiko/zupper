@@ -40,11 +40,13 @@ func (rdc *Reductor) SetModel(page domain.Model, model domain.Modeler) error {
 	if rdc.models == nil {
 		rdc.models = make(ModelList)
 	}
-	rdc.models[page] = model
+	rdc.models[page] = storeModel.(domain.Modeler)
+	// select-based non-blocking send
 	if rdc.outStateChan != nil {
-		if len(rdc.outStateChan) < cap(rdc.outStateChan) {
-			// если канал еще не заполнен то записываем в него тип модели
-			rdc.outStateChan <- page
+		select {
+		case rdc.outStateChan <- page:
+		default:
+			// channel full—drop this update
 		}
 	}
 	return nil

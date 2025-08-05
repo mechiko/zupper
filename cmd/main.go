@@ -117,7 +117,7 @@ func main() {
 	}
 	app.SetRepo(repoStart)
 
-	appModel, err := application.NewModelApplication(app, repoStart)
+	appModel, err := application.New(app, repoStart)
 	if err != nil {
 		errProcessExit("Ошибка получения логера для редуктора", err.Error())
 	}

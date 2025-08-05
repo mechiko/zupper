@@ -33,7 +33,9 @@ func (s *guiService) Run(ctx context.Context) (err error) {
 		// здесь можно что то сделать при запуске главного окна
 		s.MainWindow.StartTicker(ticketStateChange)
 	})
-
+	if err := s.StatusBarInit(); err != nil {
+		return fmt.Errorf("gui:service ошибка инициализации statusbar %w", err)
+	}
 	if codeExit := s.MainWindow.Run(); codeExit != 0 {
 		s.Logger().Infof("gui:walk exit from MainWindow.Run() CODE=%v", codeExit)
 		return fmt.Errorf("GUI error")
