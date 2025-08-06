@@ -9,8 +9,8 @@ import (
 // вернет модель из мап или nil если запрошенной модели нет
 // возвращает указатель модели
 func (rdc *Reductor) Model(page domain.Model) (interface{}, error) {
-	rdc.mutex.Lock()
-	defer rdc.mutex.Unlock()
+	rdc.mutex.RLock()
+	defer rdc.mutex.RUnlock()
 
 	if pageModel, ok := rdc.models[page]; ok {
 		if !utility.IsPointer(pageModel) {

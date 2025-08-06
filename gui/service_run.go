@@ -28,9 +28,12 @@ func (s *guiService) Run(ctx context.Context) (err error) {
 		}
 		s.Logger().Info("gui:run after shutdown")
 	}()
+	// прописываем канал по которому будем принимать уведомления об обновлении модели
 	reductor.Instance().SetOutChanState(s.MainWindow.InChangeModel)
+
 	s.MainWindow.Starting().Attach(func() {
 		// здесь можно что то сделать при запуске главного окна
+		// запускаем тикер обновления экрана
 		s.MainWindow.StartTicker(ticketStateChange)
 	})
 	if err := s.StatusBarInit(); err != nil {

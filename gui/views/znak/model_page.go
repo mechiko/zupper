@@ -11,7 +11,7 @@ import (
 func (p *ZnakPage) PageModel() (interface{}, error) {
 	model, err := reductor.Instance().Model(p.model)
 	if err != nil {
-		return nil, fmt.Errorf("view:setup pagemodel %w", err)
+		return nil, fmt.Errorf("view:znak pagemodel %w", err)
 	}
 	return model, nil
 }
@@ -29,9 +29,9 @@ func (p *ZnakPage) Model() (*znakagregate.ZnakAgregate, error) {
 			if ok {
 				return mdl, nil
 			} else {
-				return nil, fmt.Errorf("view:setup Model другой тип в редукторе %T", mdl)
+				return nil, fmt.Errorf("view:znak Model другой тип в редукторе %T", mdl)
 			}
 		}
 	}
-	return nil, fmt.Errorf("view:setup нет такой модели в редукторе")
+	return nil, fmt.Errorf("view:znak нет такой модели в редукторе")
 }

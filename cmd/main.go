@@ -102,7 +102,7 @@ func main() {
 		errProcessExit("Ошибка получения логера для редуктора", err.Error())
 	}
 
-	if _, err := reductor.New(reductorLogger.Sugar()); err != nil {
+	if err := reductor.New(reductorLogger.Sugar()); err != nil {
 		errProcessExit("Ошибка создания редуктора", err.Error())
 	}
 
