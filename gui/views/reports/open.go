@@ -1,4 +1,4 @@
-package setup
+package reports
 
 import (
 	"zupper/utility"
@@ -6,7 +6,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 )
 
-func (p *SetupPage) OpenDir(dir string) {
+func (p *ReportsPage) OpenDir(dir string) {
 	if dir == "" {
 		return
 	}
@@ -15,7 +15,7 @@ func (p *SetupPage) OpenDir(dir string) {
 	}
 }
 
-func (p *SetupPage) Open(url string) {
+func (p *ReportsPage) Open(url string) {
 	if url == "" {
 		return
 	}

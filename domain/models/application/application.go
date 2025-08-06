@@ -3,6 +3,7 @@ package application
 import (
 	"fmt"
 	"path/filepath"
+	"time"
 	"zupper/config"
 	"zupper/domain"
 	"zupper/repo"
@@ -24,6 +25,9 @@ type Application struct {
 	DbA3Desc     string
 	License      string
 	FsrarID      string
+	startTime    time.Time
+	endTime      time.Time
+	period       string
 }
 
 var _ domain.Modeler = (*Application)(nil)
@@ -61,6 +65,7 @@ func (m *Application) ReadState(app domain.Apper, repo *repo.Repository) (err er
 	m.DbA3Desc = repo.A3DB().DbPath()
 	m.License = app.Options().Application.License
 	m.FsrarID = app.Options().Application.Fsrarid
+	m.InitDateMn()
 	return nil
 }
 

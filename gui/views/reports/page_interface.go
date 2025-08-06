@@ -1,7 +1,6 @@
-package setup
+package reports
 
 import (
-	"time"
 	"zupper/domain"
 )
 
@@ -13,20 +12,19 @@ import (
 //	if p.sendChan != nil {
 //		p.sendChan(p.model)
 //	}
-func (p *SetupPage) SetSendFunc(f func(domain.Model)) {
+func (p *ReportsPage) SetSendFunc(f func(domain.Model)) {
 	p.sendChan = f
 }
 
 // обновляет по модели страницу
-func (p *SetupPage) Update() {
+func (p *ReportsPage) Update() {
 	model, err := p.Model()
 	if err != nil {
 		p.Logger().Errorf("view:setup update error %v", err)
 	}
-	if p.lblDbA3 != nil {
-		p.lblDbA3.SetText(time.Now().String() + "->" + model.Title)
-	}
+	p.start.SetDate(model.StartDate())
+	p.end.SetDate(model.EndDate())
 }
 
-func (p *SetupPage) Clear() {
+func (p *ReportsPage) Clear() {
 }

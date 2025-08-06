@@ -1,4 +1,4 @@
-package setup
+package reports
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 )
 
 // возращаем указатель на модель полученную из редуктора
-func (p *SetupPage) PageModel() (interface{}, error) {
+func (p *ReportsPage) PageModel() (interface{}, error) {
 	model, err := reductor.Instance().Model(p.model)
 	if err != nil {
 		return nil, fmt.Errorf("view:setup pagemodel %w", err)
@@ -18,7 +18,7 @@ func (p *SetupPage) PageModel() (interface{}, error) {
 
 // с преобразованием
 // если ошибка чтения модели то возвращаем модель из приложения
-func (p *SetupPage) Model() (*application.Application, error) {
+func (p *ReportsPage) Model() (*application.Application, error) {
 	if reductor.Instance().IsExistModel(p.model) {
 		reductorModel, err := reductor.Instance().Model(p.model)
 		if err != nil {

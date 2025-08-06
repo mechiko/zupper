@@ -1,4 +1,4 @@
-package setup
+package reports
 
 import (
 	"fmt"
@@ -12,9 +12,9 @@ import (
 	"github.com/mechiko/walk"
 )
 
-const modError = "gui:view:setup"
+const modError = "gui:view:reports"
 
-type SetupPage struct {
+type ReportsPage struct {
 	*walk.Composite
 	domain.Apper
 	disableChange bool
@@ -23,13 +23,8 @@ type SetupPage struct {
 	repo          *repo.Repository
 	sendChan      func(domain.Model)
 
-	utmhost     *walk.LineEdit
-	utmport     *walk.LineEdit
-	saveconf    *walk.PushButton
-	lblDbLite   *walk.Label
-	lblDbZnak   *walk.Label
-	lblDbConfig *walk.Label
-	lblDbA3     *walk.Label
+	start *walk.DateEdit
+	end   *walk.DateEdit
 }
 
 // обязательный для реализации интерфейса types.Page
@@ -41,7 +36,7 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 			panic(fmt.Errorf("%s newHomePage panic %v", modError, r))
 		}
 	}()
-	p := &SetupPage{
+	p := &ReportsPage{
 		Apper:         app,
 		repo:          repo,
 		disableChange: true,
@@ -58,11 +53,13 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 	} else {
 		return nil, fmt.Errorf("view:setup new нет в редукторе модели %s", p.model)
 	}
+	// p.start.SetDate(model.StartDate())
+	// p.end.SetDate(model.EndDate())
 	if err = p.dclCreate(parent, model); err != nil {
 		return nil, fmt.Errorf("page setup dcl create %w", err)
 	}
 	return p, err
 }
 
-func (p *SetupPage) changeIndexBrowser() {
+func (p *ReportsPage) changeIndexBrowser() {
 }
