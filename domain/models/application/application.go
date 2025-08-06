@@ -2,6 +2,7 @@ package application
 
 import (
 	"fmt"
+	"path/filepath"
 	"zupper/config"
 	"zupper/domain"
 	"zupper/repo"
@@ -54,7 +55,7 @@ func (m *Application) ReadState(app domain.Apper, repo *repo.Repository) (err er
 	m.Host = app.Options().Hostname
 	m.Port = app.Options().HostPort
 	m.Debug = config.Mode == "development"
-	m.DbLiteDesc = repo.Self().DbPath()
+	m.DbLiteDesc = fmt.Sprintf("[%s] %s", repo.Dbs().Self().Driver, filepath.Join(repo.Self().DbPath(), repo.Dbs().Self().File))
 	m.DbConfigDesc = repo.ConfigPath()
 	m.DbZnakDesc = repo.ZnakDB().DbPath()
 	m.DbA3Desc = repo.A3DB().DbPath()

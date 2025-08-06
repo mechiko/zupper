@@ -1,7 +1,6 @@
 package trueclient
 
 import (
-	"zupper/domain"
 	"zupper/reductor"
 )
 
@@ -10,5 +9,5 @@ func (t *trueClient) Save(model *TrueClientModel) {
 	model.AuthTime = t.authTime
 	model.TokenGIS = t.tokenGis
 	model.TokenSUZ = t.tokenSuz
-	reductor.Instance().SetModel(domain.TrueClient, model)
+	reductor.Instance().SetModel(model, false)
 }

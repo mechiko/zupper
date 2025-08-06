@@ -2,33 +2,36 @@ package maintain
 
 import (
 	"fmt"
-	"path"
+	"zupper/domain"
+	"zupper/gui/types"
+	"zupper/repo"
 
 	"github.com/mechiko/walk"
 	dcl "github.com/mechiko/walk/declarative"
-
-	"github.com/mechiko/alcogo4lite/gui/types"
 )
 
 const modError = "gui:maintain"
 
 type MaintainPage struct {
 	*walk.Composite
-	app    types.IApp
-	parent walk.Form
-	start  *walk.DateEdit
-	end    *walk.DateEdit
+	domain.Apper
+	sendChan func(domain.Model)
+	parent   walk.Form
+	start    *walk.DateEdit
+	end      *walk.DateEdit
 }
 
-func NewPage(parent walk.Container, app types.IApp) (pp types.Page, err error) {
+// func NewPage(parent walk.Container, app types.IApp) (pp types.Page, err error) {
+func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp types.Page, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			panic(fmt.Errorf("%s newPage panic %v", modError, r))
 		}
 	}()
-	p := new(MaintainPage)
-	p.app = app
-	p.parent = parent.Form()
+	p := &MaintainPage{
+		Apper:  app,
+		parent: parent.Form(),
+	}
 
 	if err := (dcl.Composite{
 		AssignTo:  &p.Composite,
@@ -48,7 +51,7 @@ func NewPage(parent walk.Container, app types.IApp) (pp types.Page, err error) {
 						AssignTo: &p.start,
 						Format:   "yyyy.MM.dd",
 						OnDateChanged: func() {
-							p.app.SetStartDate(p.start.Date())
+							// p.app.SetStartDate(p.start.Date())
 						},
 					},
 					dcl.DateEdit{
@@ -57,7 +60,7 @@ func NewPage(parent walk.Container, app types.IApp) (pp types.Page, err error) {
 						// Format: "yyyy-MM-dd",
 						Format: "yyyy.MM.dd",
 						OnDateChanged: func() {
-							p.app.SetEndDate(p.end.Date())
+							// p.app.SetEndDate(p.end.Date())
 						},
 					},
 					dcl.HSpacer{},
@@ -75,8 +78,8 @@ func NewPage(parent walk.Container, app types.IApp) (pp types.Page, err error) {
 								MaxSize: dcl.Size{Width: 250},
 								Text:    "Проверка БД",
 								OnClicked: func() {
-									uri := path.Join(p.app.BaseUrl(), "/v1/maintain/adminreport")
-									p.app.Open(uri)
+									// uri := path.Join(p.app.BaseUrl(), "/v1/maintain/adminreport")
+									// p.app.Open(uri)
 								},
 							},
 							dcl.TextLabel{
@@ -93,8 +96,8 @@ func NewPage(parent walk.Container, app types.IApp) (pp types.Page, err error) {
 								MaxSize: dcl.Size{Width: 250},
 								Text:    "Список проблемных ТТН",
 								OnClicked: func() {
-									uri := path.Join(p.app.BaseUrl(), "/v1/defect/ttn")
-									p.app.Open(uri)
+									// uri := path.Join(p.app.BaseUrl(), "/v1/defect/ttn")
+									// p.app.Open(uri)
 								},
 							},
 							dcl.TextLabel{
@@ -111,16 +114,16 @@ func NewPage(parent walk.Container, app types.IApp) (pp types.Page, err error) {
 								MaxSize: dcl.Size{Width: 250},
 								Text:    "Удалить запросы",
 								OnClicked: func() {
-									if result, err := p.app.Repo().DbA3().AdminRequestRemove(); err != nil {
-										p.app.Logger().Errorf("%s %s", modError, err.Error())
-										p.app.MessageBox("ошибка БД", err.Error())
-									} else {
-										if result != 0 {
-											p.app.MessageBox("Сообщение", fmt.Sprintf("Записи удалены %d", result))
-										} else {
-											p.app.MessageBox("Сообщение", "Записи удалены")
-										}
-									}
+									// if result, err := p.app.Repo().DbA3().AdminRequestRemove(); err != nil {
+									// 	p.app.Logger().Errorf("%s %s", modError, err.Error())
+									// 	p.app.MessageBox("ошибка БД", err.Error())
+									// } else {
+									// 	if result != 0 {
+									// 		p.app.MessageBox("Сообщение", fmt.Sprintf("Записи удалены %d", result))
+									// 	} else {
+									// 		p.app.MessageBox("Сообщение", "Записи удалены")
+									// 	}
+									// }
 								},
 							},
 							dcl.TextLabel{
@@ -158,8 +161,8 @@ func NewPage(parent walk.Container, app types.IApp) (pp types.Page, err error) {
 							dcl.PushButton{
 								Text: "Интерактивные локальные остатки в браузере",
 								OnClicked: func() {
-									uri := path.Join(p.app.BaseUrl(), "/v1/localrest")
-									p.app.Open(uri)
+									// uri := path.Join(p.app.BaseUrl(), "/v1/localrest")
+									// p.app.Open(uri)
 								},
 							},
 							dcl.TextLabel{
@@ -175,8 +178,8 @@ func NewPage(parent walk.Container, app types.IApp) (pp types.Page, err error) {
 							dcl.PushButton{
 								Text: "Диаграмма локальные остатки по типу",
 								OnClicked: func() {
-									uri := path.Join(p.app.BaseUrl(), "/v1/localrest/chartaptype")
-									p.app.Open(uri)
+									// uri := path.Join(p.app.BaseUrl(), "/v1/localrest/chartaptype")
+									// p.app.Open(uri)
 								},
 							},
 							dcl.TextLabel{
@@ -244,4 +247,8 @@ func (p *MaintainPage) Update() {
 }
 
 func (p *MaintainPage) Clear() {
+}
+
+func (p *MaintainPage) SetSendFunc(f func(domain.Model)) {
+	p.sendChan = f
 }

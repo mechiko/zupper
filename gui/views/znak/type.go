@@ -64,7 +64,7 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 		if model, err = znakagregate.New(p.Apper, repo); err != nil {
 			return nil, fmt.Errorf("view:znak ошибка создания модели %s %v", p.model, err)
 		}
-		if err := reductor.Instance().SetModel(model.Model(), model); err != nil {
+		if err := reductor.Instance().SetModel(model, false); err != nil {
 			return nil, fmt.Errorf("view:znak ошибка записи модели в редуктор %s %v", p.model, err)
 		}
 	}

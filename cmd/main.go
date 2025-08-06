@@ -121,7 +121,7 @@ func main() {
 	if err != nil {
 		errProcessExit("Ошибка получения логера для редуктора", err.Error())
 	}
-	if err := reductor.Instance().SetModel(appModel.Model(), appModel); err != nil {
+	if err := reductor.Instance().SetModel(appModel, false); err != nil {
 		errProcessExit("Ошибка редуктора", err.Error())
 	}
 	group.Go(func() error {

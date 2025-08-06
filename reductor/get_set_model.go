@@ -24,11 +24,16 @@ func (rdc *Reductor) Model(page domain.Model) (interface{}, error) {
 // записываем модель по типу енум моделей
 // модель должна быть указателем!
 // в редукторе модели храним тоже по указателям
-func (rdc *Reductor) SetModel(page domain.Model, model domain.Modeler) error {
+// send - извещать в канал о смене состояния (это когда смена состояния в форме которой незачем обновлятся)
+func (rdc *Reductor) SetModel(model domain.Modeler, send bool) error {
 	rdc.mutex.Lock()
 	defer rdc.mutex.Unlock()
 	if !utility.IsPointer(model) {
 		return fmt.Errorf("reductor: model must be a pointer")
+	}
+	page := model.Model()
+	if !domain.IsValidModel(string(page)) {
+		return fmt.Errorf("reductor: model type is invalide")
 	}
 	storeModel, err := model.Copy()
 	if err != nil {
@@ -41,6 +46,9 @@ func (rdc *Reductor) SetModel(page domain.Model, model domain.Modeler) error {
 		rdc.models = make(ModelList)
 	}
 	rdc.models[page] = storeModel.(domain.Modeler)
+	if !send {
+		return nil
+	}
 	// select-based non-blocking send
 	if rdc.outStateChan != nil {
 		select {

@@ -133,6 +133,7 @@ dist/
 distr/
 distrib/
 distbin/
+cmd/.nevakod/
 
 # Binaries for programs and plugins
 *.exe

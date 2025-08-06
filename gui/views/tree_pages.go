@@ -9,7 +9,7 @@ import (
 	// "zupper/gui/views/importutsz"
 	// "zupper/gui/views/importvoot"
 	// "zupper/gui/views/kontragent"
-	// "zupper/gui/views/maintain"
+	"zupper/gui/views/maintain"
 	// "zupper/gui/views/reports"
 	"zupper/gui/views/setup"
 	"zupper/gui/views/znak"
@@ -22,7 +22,7 @@ var pages = map[string]types.PageConfig{
 	// "ImportTTN":     {Title: "Импорт ТТН", Image: "PngRequester", NewPage: importvoot.NewPage, Class: "importttn"},
 	// "ImportTTNUtsz": {Title: "Импорт ТТН", Image: "PngRequester", NewPage: importutsz.NewPage, Class: "importttnutsz"},
 	// "Reports":       {Title: "Отчеты", Image: "104", NewPage: reports.NewPage, Class: "reports"},
-	// "Utility":       {Title: "Обслуживание", Image: "104", NewPage: maintain.NewPage, Class: "utility"},
+	"Utility": {Title: "Обслуживание", Image: "104", NewPage: maintain.New, Class: "utility"},
 	// "Kontragent":    {Title: "Контрагенты", Image: "104", NewPage: kontragent.NewPage, Class: "kontragent"},
 }
 
@@ -63,11 +63,11 @@ func CreateTreeMenu(app domain.Apper, repo *repo.Repository) *types.AppmenuTreeM
 	// 	tvm.Menu2NewPage[importMenu] = page31.NewPage
 	// }
 	// }
-	// if repo.IsA3() {
-	// 	page50 := pages["Utility"]
-	// 	utility := tvm.NewRootAppMenu(app, page50, page50.NewPage, imageMenu(app, page50.Image))
-	// 	tvm.Menu2NewPage[utility] = page50.NewPage
-	// }
+	if repo.IsA3() {
+		page50 := pages["Utility"]
+		utility := tvm.NewRootAppMenu(app, page50, page50.NewPage, imageMenu(app, page50.Image))
+		tvm.Menu2NewPage[utility] = page50.NewPage
+	}
 	switch app.Options().Application.StartPage {
 	case "setup":
 		tvm.SetDefaultMenu(setup)

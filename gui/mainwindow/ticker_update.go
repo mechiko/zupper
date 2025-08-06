@@ -22,6 +22,7 @@ func (w *MainWindow) StopTicker() {
 }
 
 // эту функцию передаем в качесте callback для работы с каналом
+// там где это надо, можно в конструктор страницы
 func (w *MainWindow) SendChanel(m domain.Model) {
 	select {
 	case w.InChangeModel <- m:
