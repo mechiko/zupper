@@ -3,6 +3,7 @@ package setup
 import (
 	"fmt"
 	"zupper/domain/models/application"
+	"zupper/utility"
 
 	"github.com/mechiko/walk"
 	dcl "github.com/mechiko/walk/declarative"
@@ -138,7 +139,7 @@ func (p *SetupPage) dclCreate(parent walk.Container, model *application.Applicat
 						Alignment: dcl.Alignment2D(walk.AlignHNearVNear),
 						Children: []dcl.Widget{
 							dcl.Label{
-								Text: "БД AlcoGo4Lite:",
+								Text: "БД программы:",
 							},
 							dcl.Label{
 								AssignTo: &p.lblDbLite,
@@ -167,13 +168,17 @@ func (p *SetupPage) dclCreate(parent walk.Container, model *application.Applicat
 					dcl.PushButton{
 						Text: "Открыть папку выгрузки",
 						OnClicked: func() {
-							p.OpenDir(p.Options().Output)
+							if err := utility.OpenFileInShell(p.Options().Output); err != nil {
+								utility.MessageBox("ошибка", err.Error())
+							}
 						},
 					},
 					dcl.PushButton{
 						Text: "Открыть папку настройки и логов",
 						OnClicked: func() {
-							p.OpenDir(p.ConfigPath())
+							if err := utility.OpenFileInShell(p.ConfigPath()); err != nil {
+								utility.MessageBox("ошибка", err.Error())
+							}
 						},
 					},
 				}},

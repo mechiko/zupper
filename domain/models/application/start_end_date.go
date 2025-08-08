@@ -7,28 +7,36 @@ import (
 	_ "time/tzdata"
 )
 
+var moscowTZ *time.Location
+
+func init() {
+	var err error
+	moscowTZ, err = time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		panic(fmt.Errorf("failed to load Moscow timezone: %w", err))
+	}
+}
+
 func (a *Application) InitDateKv() {
-	loc, _ := time.LoadLocation("Europe/Moscow")
-	t := time.Now().In(loc)
+	t := time.Now().In(moscowTZ)
 	_, m, _ := t.Date()
-	switch (m / 3) + 1 {
+	switch (int(m) - 1) / 3 {
+	case 0:
+		a.startTime = time.Date(t.Year(), 1, 1, 1, 0, 0, 0, moscowTZ)
 	case 1:
-		a.startTime = time.Date(t.Year(), 1, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(t.Year(), 4, 1, 1, 0, 0, 0, moscowTZ)
 	case 2:
-		a.startTime = time.Date(t.Year(), 4, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(t.Year(), 7, 1, 1, 0, 0, 0, moscowTZ)
 	case 3:
-		a.startTime = time.Date(t.Year(), 7, 1, 1, 0, 0, 0, loc)
-	case 4:
-		a.startTime = time.Date(t.Year(), 10, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(t.Year(), 10, 1, 1, 0, 0, 0, moscowTZ)
 	}
 	a.endTime = a.startTime.AddDate(0, 3, -1)
 }
 
 func (a *Application) InitDateMn() {
-	loc, _ := time.LoadLocation("Europe/Moscow")
-	t := time.Now().In(loc)
+	t := time.Now().In(moscowTZ)
 	_, m, _ := t.Date()
-	a.startTime = time.Date(t.Year(), m, 1, 1, 0, 0, 0, loc)
+	a.startTime = time.Date(t.Year(), m, 1, 1, 0, 0, 0, moscowTZ)
 	a.endTime = a.startTime.AddDate(0, 1, -1)
 	a.period = a.MnCalc()
 }
@@ -64,7 +72,7 @@ func (a *Application) EndDate() time.Time {
 
 func (a *Application) KvartalCalc() string {
 	_, m, _ := a.startTime.Date()
-	return strconv.Itoa(int((m / 3) + 1))
+	return strconv.Itoa(((int(m) - 1) / 3) + 1)
 }
 
 func (a *Application) MnCalc() (out string) {
@@ -99,71 +107,69 @@ func (a *Application) MnCalc() (out string) {
 }
 
 func (a *Application) SetKvartal(k int) {
-	loc, _ := time.LoadLocation("Europe/Moscow")
-	t := time.Now().In(loc)
+	t := time.Now().In(moscowTZ)
 	switch k {
 	case 1:
-		a.startTime = time.Date(t.Year(), 1, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(t.Year(), 1, 1, 1, 0, 0, 0, moscowTZ)
 	case 2:
-		a.startTime = time.Date(t.Year(), 4, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(t.Year(), 4, 1, 1, 0, 0, 0, moscowTZ)
 	case 3:
-		a.startTime = time.Date(t.Year(), 7, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(t.Year(), 7, 1, 1, 0, 0, 0, moscowTZ)
 	case 4:
-		a.startTime = time.Date(t.Year(), 10, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(t.Year(), 10, 1, 1, 0, 0, 0, moscowTZ)
 	}
 	a.endTime = a.startTime.AddDate(0, 3, -1)
 }
 
 func (a *Application) SetPeriod(y int, p string) {
-	loc, _ := time.LoadLocation("Europe/Moscow")
 	switch p {
 	case "янв":
-		a.startTime = time.Date(y, 1, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 1, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "фев":
-		a.startTime = time.Date(y, 2, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 2, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "мар":
-		a.startTime = time.Date(y, 3, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 3, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "1кв":
-		a.startTime = time.Date(y, 1, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 1, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 3, -1)
 	case "апр":
-		a.startTime = time.Date(y, 4, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 4, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "май":
-		a.startTime = time.Date(y, 5, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 5, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "июн":
-		a.startTime = time.Date(y, 6, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 6, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "2кв":
-		a.startTime = time.Date(y, 4, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 4, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 3, -1)
 	case "июл":
-		a.startTime = time.Date(y, 7, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 7, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "авг":
-		a.startTime = time.Date(y, 8, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 8, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "сен":
-		a.startTime = time.Date(y, 9, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 9, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "3кв":
-		a.startTime = time.Date(y, 7, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 7, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 3, -1)
 	case "окт":
-		a.startTime = time.Date(y, 10, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 10, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "ноя":
-		a.startTime = time.Date(y, 11, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 11, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "дек":
-		a.startTime = time.Date(y, 12, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 12, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 1, -1)
 	case "4кв":
-		a.startTime = time.Date(y, 10, 1, 1, 0, 0, 0, loc)
+		a.startTime = time.Date(y, 10, 1, 1, 0, 0, 0, moscowTZ)
 		a.endTime = a.startTime.AddDate(0, 3, -1)
 	}
 	a.period = p

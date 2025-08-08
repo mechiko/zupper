@@ -4,17 +4,20 @@ import (
 	"fmt"
 
 	"zupper/domain"
+	"zupper/repo"
 )
 
 const modError = "pkg:checkdbg"
 
 type Checks struct {
 	domain.Apper
+	repo *repo.Repository
 }
 
-func NewChecks(app domain.Apper) *Checks {
+func NewChecks(app domain.Apper, repo *repo.Repository) *Checks {
 	return &Checks{
 		Apper: app,
+		repo:  repo,
 	}
 }
 
@@ -24,6 +27,13 @@ func (c *Checks) Run() (err error) {
 			err = fmt.Errorf("%s Run panic %v", modError, r)
 		}
 	}()
+
+	// if err := c.TestUtilityParseCis(); err != nil {
+	// 	return err
+	// }
+	// if err := c.TestDbZnakOrderByType("Единица товара"); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

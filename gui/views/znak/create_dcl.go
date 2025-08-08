@@ -2,7 +2,7 @@ package znak
 
 import (
 	"fmt"
-	"zupper/domain/znakagregate"
+	"zupper/domain/models/znakagregate"
 
 	"github.com/mechiko/walk"
 	dcl "github.com/mechiko/walk/declarative"

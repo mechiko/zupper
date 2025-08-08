@@ -132,7 +132,7 @@ func main() {
 		return repoStart.Run(groupCtx)
 	})
 	// тесты
-	if err := checkdbg.NewChecks(app).Run(); err != nil {
+	if err := checkdbg.NewChecks(app, repoStart).Run(); err != nil {
 		loger.Errorf("check error %v", err)
 		cancel()
 		// Wait for cleanup to complete

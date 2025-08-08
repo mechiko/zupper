@@ -63,6 +63,3 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 	}
 	return p, err
 }
-
-func (p *SetupPage) changeIndexBrowser() {
-}

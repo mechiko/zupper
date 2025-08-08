@@ -59,10 +59,22 @@ func (m *Application) ReadState(app domain.Apper, repo *repo.Repository) (err er
 	m.Host = app.Options().Hostname
 	m.Port = app.Options().HostPort
 	m.Debug = config.Mode == "development"
-	m.DbLiteDesc = fmt.Sprintf("[%s] %s", repo.Dbs().Self().Driver, filepath.Join(repo.Self().DbPath(), repo.Dbs().Self().File))
-	m.DbConfigDesc = repo.ConfigPath()
-	m.DbZnakDesc = repo.ZnakDB().DbPath()
-	m.DbA3Desc = repo.A3DB().DbPath()
+	if repo.Dbs().A3().Exists {
+		m.DbA3Desc = fmt.Sprintf("[%s] %s", repo.Dbs().A3().Driver, repo.Dbs().A3().File)
+	}
+	if repo.Dbs().Self().Exists {
+		fname := repo.Dbs().Self().File
+		if filepath.IsAbs(fname) {
+			fname = filepath.Base(fname)
+		}
+		m.DbLiteDesc = fmt.Sprintf("[%s] %s", repo.Dbs().Self().Driver, fname)
+	}
+	if repo.Dbs().ConfigInfo().Exists {
+		m.DbConfigDesc = fmt.Sprintf("[%s] %s", repo.Dbs().ConfigInfo().Driver, repo.Dbs().ConfigInfo().File)
+	}
+	if repo.Dbs().Znak().Exists {
+		m.DbZnakDesc = fmt.Sprintf("[%s] %s", repo.Dbs().Znak().Driver, repo.Dbs().Znak().File)
+	}
 	m.License = app.Options().Application.License
 	m.FsrarID = app.Options().Application.Fsrarid
 	m.InitDateMn()

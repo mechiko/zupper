@@ -16,7 +16,6 @@ require (
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e
 	github.com/mechiko/walk v0.0.0-20230816210514-788aa73102d5
 	github.com/pressly/goose/v3 v3.24.3
-	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/spf13/viper v1.20.1
 	github.com/sqweek/dialog v0.0.0-20240226140203-065105509627
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c

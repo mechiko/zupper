@@ -37,7 +37,7 @@ func AbsPathCreate(path string) error {
 func PathCreate(path string) error {
 	if path != "" {
 		if !PathOrFileExists(path) {
-			if err := os.Mkdir(path, os.ModePerm); err != nil {
+			if err := os.MkdirAll(path, os.ModePerm); err != nil {
 				os.Exit(1)
 			}
 		}
@@ -50,7 +50,7 @@ func HomePathCreate(path string) error {
 	if path != "" {
 		fullPath := filepath.Join(home, path)
 		if !PathOrFileExists(fullPath) {
-			if err := os.Mkdir(fullPath, os.ModePerm); err != nil {
+			if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
 				fmt.Printf("ошибка создания %s %s\n", fullPath, err.Error())
 				os.Exit(1)
 			}

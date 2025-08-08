@@ -36,7 +36,13 @@ func New(apper domain.Apper, configFileName string, dbPath string) (d *Dbs) {
 		}
 	}()
 
-	fsrarid := findA3Name()
+	fsrarid := d.fromConfig("oms_id")
+	if fsrarid == "" {
+		fsrarid = apper.Options().Application.Fsrarid
+	}
+	if fsrarid == "" {
+		fsrarid = findA3Name()
+	}
 	file4z := ""
 	dbType := "sqlite"
 	// по возможности получаем имена в config.db
@@ -63,6 +69,8 @@ func New(apper domain.Apper, configFileName string, dbPath string) (d *Dbs) {
 			d.Logger().Errorf("%s %s", modError, err.Error())
 		}
 	}
+	// сохраняем конфиг после обработки БД
+	apper.SaveAllOptions()
 	return d
 }
 

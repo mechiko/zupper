@@ -9,6 +9,7 @@ import (
 type Apper interface {
 	Options() *config.Configuration
 	SaveOptions(key string, value interface{}) error
+	SaveAllOptions() error
 	Logger() *zap.SugaredLogger
 	ConfigPath() string
 	DbPath() string

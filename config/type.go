@@ -33,7 +33,7 @@ func New(cfgName string, inUserHome bool) (cfg *Config, err error) {
 
 	configName := cfgName
 	if cfgName == "" {
-		configName = Name
+		configName = "config"
 	}
 
 	viperOrigin := viper.GetViper()

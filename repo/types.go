@@ -21,6 +21,7 @@ type Apper interface {
 	Options() *config.Configuration
 	SaveOptions(string, any) error
 	Logger() *zap.SugaredLogger
+	SaveAllOptions() error
 	ConfigPath() string
 	DbPath() string
 	LogPath() string

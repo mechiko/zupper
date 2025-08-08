@@ -17,6 +17,8 @@ func NewA3(dbType, fsrarId string, dbi *DbInfo) (dbiOut *DbInfo, err error) {
 			return dbi, fmt.Errorf("%s отсутствуют имя базы данных для А3", modError)
 		}
 		dbi.Name = fsrarId
+	} else {
+		fsrarId = dbi.Name
 	}
 	if dbi.File == "" {
 		if fsrarId == "" {

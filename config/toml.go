@@ -39,6 +39,11 @@ dbname = ''
 driver = 'sqlite'
 file = ''
 
+[alcohelp3]
+dbname = ''
+driver = 'sqlite'
+file = ''
+
 `)
 
 type Configuration struct {

@@ -38,7 +38,7 @@ type app struct {
 
 var _ domain.Apper = (*app)(nil)
 
-const modError = "app"
+// const modError = "app"
 
 func New(cfg *config.Config, logger *zap.SugaredLogger, pwd string) *app {
 	newApp := &app{}
@@ -47,7 +47,6 @@ func New(cfg *config.Config, logger *zap.SugaredLogger, pwd string) *app {
 	newApp.config = cfg
 	newApp.options = cfg.Configuration()
 	newApp.uuid = uuid.New().String()
-	logger.Info("start pages")
 	newApp.initDateMn()
 	newApp.options.Export = "local copy"
 	if err := newApp.SaveOptions("export", "config copy"); err != nil {
@@ -144,6 +143,14 @@ func (a *app) SaveOptions(key string, value any) error {
 	a.config.SetInConfig(key, value)
 	if err := a.config.Save(); err != nil {
 		return fmt.Errorf("save in config error %w", err)
+	}
+	return nil
+}
+
+// изменения записываются в файл конфигурации
+func (a *app) SaveAllOptions() error {
+	if err := a.config.Save(); err != nil {
+		return fmt.Errorf("save all in config error %w", err)
 	}
 	return nil
 }

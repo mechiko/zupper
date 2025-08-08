@@ -3,7 +3,7 @@ package znak
 import (
 	"fmt"
 	"zupper/domain"
-	"zupper/domain/znakagregate"
+	"zupper/domain/models/znakagregate"
 	"zupper/gui/types"
 	"zupper/reductor"
 	"zupper/repo"
