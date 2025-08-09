@@ -1,0 +1,15 @@
+env
+.env[-_.]*
+
+# Ignore log directories and files.
+
+*.log
+*.logs
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.syso
