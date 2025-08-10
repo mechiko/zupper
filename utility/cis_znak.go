@@ -5,6 +5,13 @@ import (
 	"strings"
 )
 
+const (
+	serialStartPos = 19
+	gtinStartPos   = 2
+	gtinEndPos     = 16
+	gtinMinLength  = gtinEndPos - 1 // 15
+)
+
 // Вот подробное описание структуры кода маркировки:
 // GTIN (Global Trade Item Number):
 // 14 цифр, уникальный код товара, идентифицирующий конкретный вид продукции.
@@ -56,20 +63,20 @@ func ParseCisInfo(code string) (*CisInfo, error) {
 }
 
 func (i *CisInfo) parseSerial() error {
-	if len(i.Cis) > 19 {
-		i.Serial = i.Cis[19:]
+	if len(i.Cis) > serialStartPos {
+		i.Serial = i.Cis[serialStartPos:]
 		return nil
 	} else {
-		return fmt.Errorf("код КМ не полный")
+		return fmt.Errorf("код КМ не полный для серийного номера")
 	}
 }
 
 func (i *CisInfo) parseGtin() error {
-	if len(i.Cis) > 15 {
-		i.Gtin = i.Cis[2:16]
+	if len(i.Cis) > gtinMinLength {
+		i.Gtin = i.Cis[gtinStartPos:gtinEndPos]
 		return nil
 	} else {
-		return fmt.Errorf("код КМ не полный")
+		return fmt.Errorf("код КМ не полный для GTIN")
 	}
 }
 

@@ -26,7 +26,7 @@ func PathOrFileExists(name string) (ret bool) {
 func AbsPathCreate(path string) error {
 	if filepath.IsAbs(path) {
 		if !PathOrFileExists(path) {
-			if err := os.Mkdir(path, os.ModePerm); err != nil {
+			if err := os.MkdirAll(path, os.ModePerm); err != nil {
 				os.Exit(1)
 			}
 		}
