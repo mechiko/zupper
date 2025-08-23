@@ -3,7 +3,8 @@ package setup
 import (
 	"fmt"
 	"zupper/domain/models/application"
-	"zupper/utility"
+
+	"github.com/mechiko/utility"
 
 	"github.com/mechiko/walk"
 	dcl "github.com/mechiko/walk/declarative"

@@ -3,7 +3,8 @@ package dbs
 import (
 	"fmt"
 	"strings"
-	"zupper/utility"
+
+	"github.com/mechiko/utility"
 )
 
 const default4ZDriver = "sqlite"

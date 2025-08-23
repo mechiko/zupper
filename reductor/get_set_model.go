@@ -3,7 +3,8 @@ package reductor
 import (
 	"fmt"
 	"zupper/domain"
-	"zupper/utility"
+
+	"github.com/mechiko/utility"
 )
 
 // вернет модель из мап или nil если запрошенной модели нет

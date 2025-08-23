@@ -2,7 +2,8 @@ package checkdbg
 
 import (
 	"fmt"
-	"zupper/utility"
+
+	"github.com/mechiko/utility"
 )
 
 func (c *Checks) TestUtilityParseCis() error {

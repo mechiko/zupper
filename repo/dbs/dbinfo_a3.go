@@ -3,7 +3,7 @@ package dbs
 import (
 	"fmt"
 
-	"zupper/utility"
+	"github.com/mechiko/utility"
 )
 
 const defaultA3Driver = "sqlite"

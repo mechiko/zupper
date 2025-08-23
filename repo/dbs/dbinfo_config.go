@@ -1,7 +1,7 @@
 package dbs
 
 import (
-	"zupper/utility"
+	"github.com/mechiko/utility"
 )
 
 const defaultConfigFile = "config.db"

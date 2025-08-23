@@ -7,7 +7,8 @@ import (
 	"path/filepath"
 	"zupper/domain"
 	"zupper/reductor"
-	"zupper/utility"
+
+	"github.com/mechiko/utility"
 )
 
 const modError = "http:templates"

@@ -10,7 +10,8 @@ import (
 	"zupper/repo/dbs"
 	"zupper/repo/selfdb"
 	"zupper/repo/znakdb"
-	"zupper/utility"
+
+	"github.com/mechiko/utility"
 
 	"go.uber.org/zap"
 )

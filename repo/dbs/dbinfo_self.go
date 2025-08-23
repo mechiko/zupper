@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 	"zupper/config"
-	"zupper/utility"
+
+	"github.com/mechiko/utility"
 )
 
 const defaultSelfDBDriver = "sqlite"

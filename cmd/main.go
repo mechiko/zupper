@@ -16,8 +16,9 @@ import (
 	"zupper/reductor"
 	"zupper/repo"
 	"zupper/spaserver"
-	"zupper/utility"
 	"zupper/zaplog"
+
+	"github.com/mechiko/utility"
 
 	"golang.org/x/sync/errgroup"
 )

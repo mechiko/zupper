@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"zupper/domain/models/application"
 	"zupper/reductor"
-	"zupper/utility"
+
+	"github.com/mechiko/utility"
 )
 
 // возращаем указатель на модель полученную из редуктора

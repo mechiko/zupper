@@ -5,7 +5,8 @@ import (
 	"regexp"
 	"strings"
 	"zupper/domain"
-	"zupper/utility"
+
+	"github.com/mechiko/utility"
 )
 
 const modError = "repo:dbs"
@@ -13,21 +14,21 @@ const modError = "repo:dbs"
 type Dbs struct {
 	domain.Apper
 	// defaultDriver  string
-	self           *DbInfo
-	a3             *DbInfo
-	znak           *DbInfo
-	config         *DbInfo
-	configFileName string // config.db алкохелпа
-	errors         []string
+	self             *DbInfo
+	a3               *DbInfo
+	znak             *DbInfo
+	config           *DbInfo
+	configDbFileName string // config.db алкохелпа
+	errors           []string
 }
 
 // dbPath для своей БД
-func New(apper domain.Apper, configFileName string, dbPath string) (d *Dbs) {
+func New(apper domain.Apper, configDbFileName string, dbPath string) (d *Dbs) {
 	var err error
 	d = &Dbs{
-		Apper:          apper,
-		configFileName: configFileName,
-		errors:         make([]string, 0),
+		Apper:            apper,
+		configDbFileName: configDbFileName,
+		errors:           make([]string, 0),
 		// defaultDriver:  logcfg.Config().Configuration().Application.DbType,
 	}
 	defer func() {
