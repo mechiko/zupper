@@ -14,6 +14,8 @@ import (
 	"zupper/gui/views/setup"
 	"zupper/gui/views/znak"
 	"zupper/repo"
+
+	"github.com/mechiko/dbscan"
 )
 
 var pages = map[string]types.PageConfig{
@@ -36,13 +38,13 @@ func CreateTreeMenu(app domain.Apper, repo *repo.Repository) *types.AppmenuTreeM
 	setup := tvm.NewRootAppMenu(app, page1, page1.NewPage, imageMenu(app, page1.Image))
 	tvm.Menu2NewPage[setup] = page1.NewPage
 
-	if repo.IsZnak() {
+	if repo.Is(dbscan.TrueZnak) {
 		menu20 := tvm.NewRootMenu("ЧЗ", nil, "103")
 		page21 := pages["Znak"]
 		trueZnakMenu = menu20.AddChild(app, page21, page21.NewPage, imageMenu(app, page21.Image))
 		tvm.Menu2NewPage[trueZnakMenu] = page21.NewPage
 	}
-	if repo.IsA3() {
+	if repo.Is(dbscan.A3) {
 		menu30 := tvm.NewRootMenu("АлкоХелп3", nil, "103")
 		page32 := pages["Reports"]
 		reportsMenu = menu30.AddChild(app, page32, page32.NewPage, imageMenu(app, page32.Image))
@@ -64,7 +66,7 @@ func CreateTreeMenu(app domain.Apper, repo *repo.Repository) *types.AppmenuTreeM
 		// 	tvm.Menu2NewPage[importMenu] = page31.NewPage
 		// }
 	}
-	if repo.IsA3() {
+	if repo.Is(dbscan.A3) {
 		page50 := pages["Utility"]
 		utility := tvm.NewRootAppMenu(app, page50, page50.NewPage, imageMenu(app, page50.Image))
 		tvm.Menu2NewPage[utility] = page50.NewPage

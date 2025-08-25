@@ -5,7 +5,6 @@ import (
 	"time"
 	"zupper/config"
 	"zupper/domain"
-	"zupper/repo"
 
 	"github.com/mechiko/dbscan"
 )
@@ -34,7 +33,7 @@ type Application struct {
 var _ domain.Modeler = (*Application)(nil)
 
 // создаем модель считываем ее состояние и возвращаем указатель
-func New(app domain.Apper, repo *repo.Repository) (*Application, error) {
+func New(app domain.Apper, repo domain.Repo) (*Application, error) {
 	model := &Application{
 		model: domain.Application,
 		Title: "Application Title",
@@ -53,28 +52,29 @@ func (m *Application) SyncToStore(app domain.Apper) (err error) {
 }
 
 // читаем состояние приложения
-func (m *Application) ReadState(app domain.Apper, repo *repo.Repository) (err error) {
+func (m *Application) ReadState(app domain.Apper, repo domain.Repo) (err error) {
 	m.Export = app.Options().Export
 	m.Browser = app.Options().Browser
 	m.Output = app.Options().Output
 	m.Host = app.Options().Hostname
 	m.Port = app.Options().HostPort
 	m.Debug = config.Mode == "development"
-	if repo.IsA3() {
-		info := repo.Info(dbscan.A3)
-		m.DbA3Desc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
-	}
-	if repo.IsSelf() {
-		info := repo.Info(dbscan.Other)
-		m.DbLiteDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
-	}
-	if repo.IsA3() {
-		info := repo.Info(dbscan.Config)
-		m.DbConfigDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
-	}
-	if repo.IsZnak() {
-		info := repo.Info(dbscan.TrueZnak)
-		m.DbZnakDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+	for _, v := range repo.ListDbs() {
+		if repo.Is(v) {
+			info := repo.Info(v)
+			switch v {
+			case dbscan.A3:
+				m.DbA3Desc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+			case dbscan.Config:
+				m.DbConfigDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+			case dbscan.TrueZnak:
+				m.DbZnakDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+			case dbscan.Other:
+				m.DbLiteDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+			default:
+				return fmt.Errorf("application readstate type error %v", v)
+			}
+		}
 	}
 	m.License = app.Options().Application.License
 	m.FsrarID = app.Options().Application.Fsrarid

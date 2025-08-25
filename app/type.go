@@ -11,7 +11,6 @@ import (
 	"time"
 	"zupper/config"
 	"zupper/domain"
-	"zupper/repo"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -24,16 +23,18 @@ import (
 // }
 
 type app struct {
-	ctx       context.Context
-	uuid      string // идентификатор для уникальности формы
-	config    *config.Config
-	options   *config.Configuration // копия config.Configuration
-	loger     *zap.SugaredLogger
-	pwd       string
-	startTime time.Time
-	endTime   time.Time
-	repo      *repo.Repository
-	output    string
+	ctx           context.Context
+	uuid          string // идентификатор для уникальности формы
+	config        *config.Config
+	options       *config.Configuration // копия config.Configuration
+	loger         *zap.SugaredLogger
+	pwd           string
+	startTime     time.Time
+	endTime       time.Time
+	repo          domain.Repo
+	output        string
+	dbSelfPath    string
+	defaultDbPath string
 }
 
 var _ domain.Apper = (*app)(nil)
@@ -96,10 +97,6 @@ func (a *app) EndDate() time.Time {
 	return a.endTime
 }
 
-func (a *app) SetRepo(repo *repo.Repository) {
-	a.repo = repo
-}
-
 func (a *app) FsrarID() string {
 	return a.Config().Configuration().Application.Fsrarid
 }
@@ -112,8 +109,16 @@ func (a *app) Pwd() string {
 	return a.pwd
 }
 
-func (a *app) Repo() *repo.Repository {
+func (a *app) Repo() domain.Repo {
 	return a.repo
+}
+
+func (a *app) SetRepo(repo domain.Repo) error {
+	if a.repo != nil {
+		return fmt.Errorf("попытка установить новый репо при уже работающем")
+	}
+	a.repo = repo
+	return nil
 }
 
 func (a *app) Output() string {
@@ -202,11 +207,12 @@ func (a *app) ConfigPath() string {
 	return ""
 }
 
-func (a *app) DbPath() string {
-	if a.config != nil {
-		return a.config.DbPath()
-	}
-	return ""
+func (a *app) DefaultDbPath() string {
+	return a.defaultDbPath
+}
+
+func (a *app) SetDefaultDbPath(path string) {
+	a.defaultDbPath = path
 }
 
 func (a *app) LogPath() string {
@@ -219,4 +225,12 @@ func (a *app) LogPath() string {
 func (a *app) BaseUrl() string {
 	uri := fmt.Sprintf("http://%s:%s", a.options.Hostname, a.options.HostPort)
 	return uri
+}
+
+func (a *app) DbSelfPath() string {
+	return a.dbSelfPath
+}
+
+func (a *app) SetDbSelfPath(path string) {
+	a.dbSelfPath = path
 }

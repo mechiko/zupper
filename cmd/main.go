@@ -94,6 +94,10 @@ func main() {
 	}
 	// создаем приложение с опциями из конфига и логером основным
 	app := app.New(cfg, loger, dir)
+	app.SetDbSelfPath(cfg.ConfigPath())
+	// бд основные находятся в текущем каталоге если не переопределено в настройках
+	app.SetDefaultDbPath("")
+
 	// инициализируем пути необходимые приложению
 	app.CreatePath()
 	// создаем редуктор для хранения моделей приложения
@@ -120,16 +124,18 @@ func main() {
 	listDbs[dbscan.A3] = &dbscan.DbInfo{}
 	listDbs[dbscan.TrueZnak] = &dbscan.DbInfo{}
 
-	dbPath := ""
-	repoStart, err := repo.New(app.Logger(), listDbs, dbPath)
+	repoStart, err := repo.New(app.Logger(), listDbs, app.DefaultDbPath())
 	if err != nil {
 		errProcessExit("Ошибки запуска репозитория", err)
 	}
-	app.SetRepo(repoStart)
+	err = app.SetRepo(repoStart)
+	if err != nil {
+		errProcessExit("Ошибки установки в app репозитория", err)
+	}
 
 	appModel, err := application.New(app, repoStart)
 	if err != nil {
-		errProcessExit("Ошибка получения логера для редуктора", err)
+		errProcessExit("Ошибка создания модели для редуктора", err)
 	}
 	if err := reductor.Instance().SetModel(appModel, false); err != nil {
 		errProcessExit("Ошибка редуктора", err)

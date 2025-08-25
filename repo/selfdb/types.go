@@ -1,7 +1,6 @@
 package selfdb
 
 import (
-	"database/sql"
 	_ "embed"
 	"fmt"
 
@@ -10,39 +9,52 @@ import (
 	"go.uber.org/zap"
 )
 
-const modError = "repo:selfdb"
+const modError = "selfdb"
 
 type DbSelf struct {
 	logger    *zap.SugaredLogger
 	dbSession db.Session // открытый хэндл тут
+	dbInfo    *dbscan.DbInfo
+	infoType  dbscan.DbInfoType
+	version   int64
 }
 
-func New(logger *zap.SugaredLogger, a *dbscan.DbInfo) *DbSelf {
+func New(logger *zap.SugaredLogger, info *dbscan.DbInfo, infoType dbscan.DbInfoType, create bool) (*DbSelf, error) {
 	db := &DbSelf{
 		logger: logger,
+		dbInfo: info,
 	}
-	return db
+	if info == nil {
+		return nil, fmt.Errorf("%s dbinfo is nil", modError)
+	}
+	// передаем флаг о необходимости создания, это при запуске приложения из repo
+	// проверяем, если нет создаем, если надо мигрируем
+	// открываем сесиию в этом методе если нет ошибки
+	if err := db.Check(create); err != nil {
+		return nil, fmt.Errorf("%s error check %v", modError, err)
+	}
+	return db, nil
 }
 
 func (c *DbSelf) Close() (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("panic %v", r)
-		}
-	}()
 	return c.dbSession.Close()
-}
-
-func (c *DbSelf) DB() *sql.DB {
-	return c.dbSession.Driver().(*sql.DB)
 }
 
 func (c *DbSelf) Sess() db.Session {
 	return c.dbSession
 }
 
-// сделано отдельно чтобы закрывать бд
-func (c *DbSelf) Ping() (err error) {
-	defer c.dbSession.Close()
-	return c.dbSession.Ping()
+func (c *DbSelf) Version() int64 {
+	return c.version
+}
+
+func (c *DbSelf) Info() dbscan.DbInfo {
+	if c.dbInfo == nil {
+		return dbscan.DbInfo{}
+	}
+	return *c.dbInfo
+}
+
+func (c *DbSelf) InfoType() dbscan.DbInfoType {
+	return c.infoType
 }

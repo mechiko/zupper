@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"sync"
 
-	"zupper/repo/selfdb"
-
 	"github.com/mechiko/dbscan"
 	"go.uber.org/zap"
 )
@@ -22,6 +20,7 @@ type Repository struct {
 	logger  *zap.SugaredLogger
 	dbs     *dbscan.Dbs
 	dbMutex map[dbscan.DbInfoType]*singleMutex
+	listDbs []dbscan.DbInfoType
 }
 
 // dbPath для своей БД
@@ -41,9 +40,13 @@ func New(logger *zap.SugaredLogger, listDbs dbscan.ListDbInfoForScan, dbPath str
 		logger:  logger,
 		dbs:     dbs,
 		dbMutex: make(map[dbscan.DbInfoType]*singleMutex),
+		listDbs: make([]dbscan.DbInfoType, len(listDbs)),
 	}
 	exit := false
+	i := 0
 	for tp, dbInfo := range listDbs {
+		rp.listDbs[i] = tp
+		i++
 		if dbInfo == nil {
 			rp.logger.Infof("%s отсутствует БД %v", modError, dbInfo)
 			exit = true
@@ -58,41 +61,12 @@ func New(logger *zap.SugaredLogger, listDbs dbscan.ListDbInfoForScan, dbPath str
 		return nil, fmt.Errorf("%s не все бд найдены", modError)
 	}
 	if di := rp.dbs.Info(dbscan.Other); di != nil {
-		// миграция для Self
+		// инициализация для Self если она есть в настройках списка доступных БД
 		if err := rp.prepareSelf(); err != nil {
 			return nil, fmt.Errorf("%s ошибка миграции self %w", modError, err)
 		}
 	}
 	return rp, nil
-}
-
-// func (r *Repository) Dbs() *dbscan.Dbs {
-// 	return r.dbs
-// }
-
-// after Self() must be SelfClose() or deadlock
-func (r *Repository) SelfLock() *selfdb.DbSelf {
-	mu, ok := r.dbMutex[dbscan.Other]
-	if ok {
-		mu.mutex.Lock()
-	} else {
-		return nil
-	}
-	info := r.dbs.Info(dbscan.Other)
-	if info != nil {
-		return selfdb.New(r.logger, r.dbs.Info(dbscan.Other))
-	}
-	return nil
-}
-
-func (r *Repository) SelfUnlock() error {
-	mu, ok := r.dbMutex[dbscan.Other]
-	if ok {
-		mu.mutex.Unlock()
-	} else {
-		return fmt.Errorf("%s close not present mutex %v", modError, dbscan.Other)
-	}
-	return nil
 }
 
 // возвращаем DbInfo или nil
@@ -101,4 +75,13 @@ func (r *Repository) Info(t dbscan.DbInfoType) *dbscan.DbInfo {
 		return di
 	}
 	return nil
+}
+
+func (r *Repository) ListDbs() (out []dbscan.DbInfoType) {
+	if r.listDbs == nil {
+		return nil
+	}
+	out = make([]dbscan.DbInfoType, len(r.listDbs))
+	copy(out, r.listDbs)
+	return out
 }
