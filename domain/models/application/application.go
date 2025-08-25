@@ -2,11 +2,12 @@ package application
 
 import (
 	"fmt"
-	"path/filepath"
 	"time"
 	"zupper/config"
 	"zupper/domain"
 	"zupper/repo"
+
+	"github.com/mechiko/dbscan"
 )
 
 type Application struct {
@@ -59,21 +60,21 @@ func (m *Application) ReadState(app domain.Apper, repo *repo.Repository) (err er
 	m.Host = app.Options().Hostname
 	m.Port = app.Options().HostPort
 	m.Debug = config.Mode == "development"
-	if repo.Dbs().A3().Exists {
-		m.DbA3Desc = fmt.Sprintf("[%s] %s", repo.Dbs().A3().Driver, repo.Dbs().A3().File)
+	if repo.IsA3() {
+		info := repo.Info(dbscan.A3)
+		m.DbA3Desc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
 	}
-	if repo.Dbs().Self().Exists {
-		fname := repo.Dbs().Self().File
-		if filepath.IsAbs(fname) {
-			fname = filepath.Base(fname)
-		}
-		m.DbLiteDesc = fmt.Sprintf("[%s] %s", repo.Dbs().Self().Driver, fname)
+	if repo.IsSelf() {
+		info := repo.Info(dbscan.Other)
+		m.DbLiteDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
 	}
-	if repo.Dbs().ConfigInfo().Exists {
-		m.DbConfigDesc = fmt.Sprintf("[%s] %s", repo.Dbs().ConfigInfo().Driver, repo.Dbs().ConfigInfo().File)
+	if repo.IsA3() {
+		info := repo.Info(dbscan.Config)
+		m.DbConfigDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
 	}
-	if repo.Dbs().Znak().Exists {
-		m.DbZnakDesc = fmt.Sprintf("[%s] %s", repo.Dbs().Znak().Driver, repo.Dbs().Znak().File)
+	if repo.IsZnak() {
+		info := repo.Info(dbscan.TrueZnak)
+		m.DbZnakDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
 	}
 	m.License = app.Options().Application.License
 	m.FsrarID = app.Options().Application.Fsrarid

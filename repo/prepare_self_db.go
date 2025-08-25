@@ -3,10 +3,13 @@ package repo
 import (
 	"database/sql"
 	"fmt"
-	"zupper/repo/selfdb"
+	"path/filepath"
 	"zupper/repo/selfdb/migrations"
 
+	"github.com/mechiko/dbscan"
 	"github.com/pressly/goose/v3"
+	"github.com/upper/db/v4"
+	"github.com/upper/db/v4/adapter/sqlite"
 )
 
 // при инициализации приложения этот метод вызывается однажды и прописывает объект доступа
@@ -18,18 +21,35 @@ func (r *Repository) prepareSelf() (err error) {
 		}
 	}()
 
-	self := selfdb.New(r, r.dbs.Self())
+	selfInfo := r.dbs.Info(dbscan.Other)
+	if selfInfo == nil {
+		return fmt.Errorf("repo prepareSelf база не подключена")
+	}
+	var self db.Session
+	if !selfInfo.Exists {
+		uri := selfInfo.SqliteUri(filepath.Join(selfInfo.Path, selfInfo.File))
+		uri.Options["mode"] = "rwc"
+		self, err = sqlite.Open(uri)
+	} else {
+		self, err = selfInfo.Connect()
+	}
+	if err != nil {
+		return fmt.Errorf("repo prepareSelf ошибка подключения к БД %w", err)
+	}
 	defer self.Close()
-
-	db := self.DB()
-	dialect := r.dbs.Self().Driver
+	db, ok := self.Driver().(*sql.DB)
+	if !ok {
+		return fmt.Errorf("repo prepareSelf ошибка получения *sql.DB %T", self.Driver())
+	}
+	dialect := r.dbs.Info(dbscan.Other).Driver
 	switch dialect {
 	case "sqlite":
 		if err := r.makeMigrationsSqlite(db); err != nil {
 			return fmt.Errorf("%s %w", modError, err)
 		}
 	case "mssql":
-		if err := r.makeMigrationsMs(self.Sess().ConnectionURL().String()); err != nil {
+		uri := selfInfo.MssqlUri().String()
+		if err := r.makeMigrationsMs(uri); err != nil {
 			return fmt.Errorf("%s %w", modError, err)
 		}
 	default:
@@ -39,9 +59,6 @@ func (r *Repository) prepareSelf() (err error) {
 	if Version, err = goose.GetDBVersion(db); err != nil {
 		return fmt.Errorf("%s %w", modError, err)
 	}
-	r.SaveOptions("selfdb.driver", r.dbs.Self().Driver)
-	r.SaveOptions("selfdb.file", r.dbs.Self().File)
-	r.SaveOptions("selfdb.dbname", r.dbs.Self().Name)
 	return nil
 }
 

@@ -18,6 +18,7 @@ import (
 	"zupper/spaserver"
 	"zupper/zaplog"
 
+	"github.com/mechiko/dbscan"
 	"github.com/mechiko/utility"
 
 	"golang.org/x/sync/errgroup"
@@ -29,8 +30,8 @@ const modError = "main"
 var fileExe string
 var dir string
 
-// если local true то папка создается локально
-var local = flag.Bool("local", false, "")
+// если home true то папка создается локально
+var home = flag.Bool("home", false, "")
 
 func init() {
 	flag.Parse()
@@ -59,7 +60,7 @@ func main() {
 
 	group, groupCtx := errgroup.WithContext(ctx)
 
-	cfg, err := config.New("", !*local)
+	cfg, err := config.New("", *home)
 	if err != nil {
 		errMessageExit("ошибка конфигурации", err.Error())
 	}
@@ -74,9 +75,6 @@ func main() {
 	if err != nil {
 		errMessageExit("ошибка создания логера", err.Error())
 	}
-	// group.Go(func() error {
-	// 	return zl.Run(groupCtx)
-	// })
 
 	lg, err := zl.GetLogger("logger")
 	if err != nil {
@@ -89,9 +87,10 @@ func main() {
 		loger.Infof("pkg:config warning %s", cfg.Warning())
 	}
 
-	errProcessExit := func(title string, errDescription string) {
-		loger.Errorf("%s %s", title, errDescription)
-		errMessageExit(title, errDescription)
+	errProcessExit := func(title string, err error) {
+		loger.Errorf("%s %v", title, err)
+		msg := fmt.Sprintf("%v", err)
+		errMessageExit(title, msg)
 	}
 	// создаем приложение с опциями из конфига и логером основным
 	app := app.New(cfg, loger, dir)
@@ -100,30 +99,40 @@ func main() {
 	// создаем редуктор для хранения моделей приложения
 	reductorLogger, err := zl.GetLogger("reductor")
 	if err != nil {
-		errProcessExit("Ошибка получения логера для редуктора", err.Error())
+		errProcessExit("Ошибка получения логера для редуктора", err)
 	}
 
 	if err := reductor.New(reductorLogger.Sugar()); err != nil {
-		errProcessExit("Ошибка создания редуктора", err.Error())
+		errProcessExit("Ошибка создания редуктора", err)
 	}
 
 	loger.Info("start repo")
 	// инициализируем REPO
 	// TODO изменить получение путей из конфига
-	dbPath := cfg.DbPath()
-	repoStart := repo.New(app, dbPath)
-	if len(repoStart.Errors()) > 0 {
-		fullErr := strings.Join(repoStart.Errors(), "\n")
-		errProcessExit("Ошибки запуска репозитория", fullErr)
+	listDbs := make(dbscan.ListDbInfoForScan)
+	listDbs[dbscan.Config] = &dbscan.DbInfo{}
+	listDbs[dbscan.Other] = &dbscan.DbInfo{
+		File:   "4zupper.db",
+		Name:   "zupper",
+		Driver: "sqlite",
+		Path:   `.nevakod\4zupper`,
+	}
+	listDbs[dbscan.A3] = &dbscan.DbInfo{}
+	listDbs[dbscan.TrueZnak] = &dbscan.DbInfo{}
+
+	dbPath := ""
+	repoStart, err := repo.New(app.Logger(), listDbs, dbPath)
+	if err != nil {
+		errProcessExit("Ошибки запуска репозитория", err)
 	}
 	app.SetRepo(repoStart)
 
 	appModel, err := application.New(app, repoStart)
 	if err != nil {
-		errProcessExit("Ошибка получения логера для редуктора", err.Error())
+		errProcessExit("Ошибка получения логера для редуктора", err)
 	}
 	if err := reductor.Instance().SetModel(appModel, false); err != nil {
-		errProcessExit("Ошибка редуктора", err.Error())
+		errProcessExit("Ошибка редуктора", err)
 	}
 	group.Go(func() error {
 		go func() {
@@ -138,7 +147,7 @@ func main() {
 		cancel()
 		// Wait for cleanup to complete
 		group.Wait()
-		errProcessExit("Check failed", err.Error())
+		errProcessExit("Check failed", err)
 	}
 
 	loger.Info("start up webapp")
@@ -156,7 +165,7 @@ func main() {
 	// тут инициализируются так же модели для всех видов
 	spaServerLogger, err := zl.GetLogger("echo")
 	if err != nil {
-		errProcessExit("Ошибка получения логера для http server", err.Error())
+		errProcessExit("Ошибка получения логера для http server", err)
 	}
 	httpServer := spaserver.New(app, spaServerLogger, repoStart, port, true)
 	loger.Infof("отладка шаблонов %v", httpServer.TemplateIsDebug())

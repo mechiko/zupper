@@ -14,6 +14,7 @@ require (
 	github.com/justinas/nosurf v1.2.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e
+	github.com/mechiko/dbscan v0.0.0-20250824090424-a3ed3ef70222
 	github.com/mechiko/utility v0.0.0-20250821050810-49544d80570c
 	github.com/mechiko/walk v0.0.0-20230816210514-788aa73102d5
 	github.com/pressly/goose/v3 v3.24.3

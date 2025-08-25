@@ -13,6 +13,6 @@ func (r *Repository) Run(ctx context.Context) (err error) {
 	}()
 	// ожидаем завершения контекста
 	<-ctx.Done()
-	r.Logger().Infof("завершаем работу репозитория по контексту")
+	r.logger.Infof("завершаем работу репозитория по контексту")
 	return nil
 }

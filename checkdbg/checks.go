@@ -31,9 +31,5 @@ func (c *Checks) Run() (err error) {
 	// if err := c.TestUtilityParseCis(); err != nil {
 	// 	return err
 	// }
-	// if err := c.TestDbZnakOrderByType("Единица товара"); err != nil {
-	// 	return err
-	// }
-
 	return nil
 }

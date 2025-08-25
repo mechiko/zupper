@@ -21,12 +21,3 @@ func (c *Checks) TestUtilityParseCis() error {
 	}
 	return nil
 }
-
-func (c *Checks) TestDbZnakOrderByType(cisType string) error {
-	arr, err := c.repo.ZnakDB().CisTypeOrders(cisType)
-	if err != nil {
-		return err
-	}
-	fmt.Println(len(arr))
-	return nil
-}
