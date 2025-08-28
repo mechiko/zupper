@@ -182,7 +182,7 @@ func main() {
 	if err != nil {
 		errProcessExit("Ошибка получения логера для http server", err)
 	}
-	httpServer := spaserver.New(app, spaServerLogger, repoStart, port, true)
+	httpServer := spaserver.New(app, spaServerLogger, port, true)
 	loger.Infof("отладка шаблонов %v", httpServer.TemplateIsDebug())
 	loger.Infof("путь шаблонов %s", httpServer.RootPathTemplates())
 	// запускаем сервер эхо через него SSE работает для флэш сообщений

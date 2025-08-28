@@ -56,7 +56,7 @@ type Server struct {
 
 // var sseManager *sse.Server
 
-func New(a domain.Apper, zl *zap.Logger, repo *repo.Repository, port string, debug bool) *Server {
+func New(a domain.Apper, zl *zap.Logger, port string, debug bool) *Server {
 	addr := fmt.Sprintf("%s:%s", "127.0.0.1", port)
 	if port == "" {
 		addr = _defaultAddr
@@ -97,7 +97,6 @@ func New(a domain.Apper, zl *zap.Logger, repo *repo.Repository, port string, deb
 		defaultPage:     "",
 		activePage:      reductor.Home,
 		htmx:            htmx.New(),
-		repo:            repo,
 	}
 
 	e.Renderer = ss
@@ -205,8 +204,4 @@ func (s *Server) RootPathTemplates() string {
 		return ""
 	}
 	return s.templates.RootPathTemplates()
-}
-
-func (s *Server) Repo() *repo.Repository {
-	return s.repo
 }

@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"time"
 	"zupper/config"
 
 	"go.uber.org/zap"
@@ -14,4 +15,14 @@ type Apper interface {
 	ConfigPath() string
 	DefaultDbPath() string
 	LogPath() string
+	Repo() Repo
+	NowDateString() string
+	StartDateString() string
+	EndDateString() string
+	SetStartDate(d time.Time)
+	SetEndDate(d time.Time)
+	StartDate() time.Time
+	EndDate() time.Time
+	FsrarID() string
+	Pwd() string
 }
