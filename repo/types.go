@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
@@ -31,7 +32,14 @@ func New(logger *zap.SugaredLogger, listDbs dbscan.ListDbInfoForScan, dbPath str
 			err = fmt.Errorf("repo panic %v", r)
 		}
 	}()
-
+	if len(listDbs) == 0 {
+		return nil, fmt.Errorf("список описателей бд пуст")
+	}
+	for tp, info := range listDbs {
+		if info == nil {
+			return nil, fmt.Errorf("%s in list [%v] is nil", modError, tp)
+		}
+	}
 	dbs, err := dbscan.New(listDbs, dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("%s dbscan error %w", modError, err)
@@ -40,25 +48,24 @@ func New(logger *zap.SugaredLogger, listDbs dbscan.ListDbInfoForScan, dbPath str
 		logger:  logger,
 		dbs:     dbs,
 		dbMutex: make(map[dbscan.DbInfoType]*singleMutex),
-		listDbs: make([]dbscan.DbInfoType, len(listDbs)),
+		listDbs: make([]dbscan.DbInfoType, 0),
 	}
-	exit := false
-	i := 0
-	for tp, dbInfo := range listDbs {
-		rp.listDbs[i] = tp
-		i++
+	for tp := range listDbs {
+		dbInfo := rp.dbs.Info(tp)
 		if dbInfo == nil {
-			rp.logger.Infof("%s отсутствует БД %v", modError, dbInfo)
-			exit = true
+			// такая ошибка не вероятна дбскан выдаст ошибку при сканировании
+			// но проверить надо вдруг чего...
+			err = errors.Join(err, fmt.Errorf("%s отсутствует БД %v", modError, tp))
 		} else {
+			rp.listDbs = append(rp.listDbs, tp)
 			// создаем в мапе мьютекс
 			if _, ok := rp.dbMutex[tp]; !ok {
 				rp.dbMutex[tp] = &singleMutex{}
 			}
 		}
 	}
-	if exit {
-		return nil, fmt.Errorf("%s не все бд найдены", modError)
+	if err != nil {
+		return nil, fmt.Errorf("%s не все бд найдены %v", modError, err)
 	}
 	if di := rp.dbs.Info(dbscan.Other); di != nil {
 		// инициализация для Self если она есть в настройках списка доступных БД

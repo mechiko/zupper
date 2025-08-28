@@ -20,6 +20,7 @@ import (
 
 	"github.com/mechiko/dbscan"
 	"github.com/mechiko/utility"
+	"go.uber.org/zap"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -48,8 +49,11 @@ func init() {
 	}
 }
 
-func errMessageExit(title string, errDescription string) {
-	utility.MessageBox(title, errDescription)
+func errMessageExit(loger *zap.SugaredLogger, title string, err error) {
+	if loger != nil {
+		loger.Errorf("%s %v", title, err)
+	}
+	utility.MessageBox(title, err.Error())
 	os.Exit(-1)
 }
 
@@ -62,7 +66,7 @@ func main() {
 
 	cfg, err := config.New("", *home)
 	if err != nil {
-		errMessageExit("ошибка конфигурации", err.Error())
+		errMessageExit(nil, "ошибка конфигурации", err)
 	}
 
 	var logsOutConfig = map[string][]string{
@@ -73,12 +77,12 @@ func main() {
 	}
 	zl, err := zaplog.New(logsOutConfig, true)
 	if err != nil {
-		errMessageExit("ошибка создания логера", err.Error())
+		errMessageExit(nil, "ошибка создания логера", err)
 	}
 
 	lg, err := zl.GetLogger("logger")
 	if err != nil {
-		errMessageExit("ошибка получения логера", err.Error())
+		errMessageExit(nil, "ошибка получения логера", err)
 	}
 	loger := lg.Sugar()
 	loger.Debug("zaplog started")
@@ -88,9 +92,7 @@ func main() {
 	}
 
 	errProcessExit := func(title string, err error) {
-		loger.Errorf("%s %v", title, err)
-		msg := fmt.Sprintf("%v", err)
-		errMessageExit(title, msg)
+		errMessageExit(loger, title, err)
 	}
 	// создаем приложение с опциями из конфига и логером основным
 	app := app.New(cfg, loger, dir)
@@ -148,8 +150,15 @@ func main() {
 		return repoStart.Run(groupCtx)
 	})
 	// тесты
-	if err := checkdbg.NewChecks(app, repoStart).Run(); err != nil {
-		loger.Errorf("check error %v", err)
+	checker, err := checkdbg.NewChecks(loger, repoStart)
+	if err != nil {
+		cancel()
+		// Wait for cleanup to complete
+		group.Wait()
+		errProcessExit("Check failed", err)
+	}
+	err = checker.Run()
+	if err != nil {
 		cancel()
 		// Wait for cleanup to complete
 		group.Wait()

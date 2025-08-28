@@ -3,33 +3,37 @@ package repo
 import (
 	"fmt"
 	"zupper/domain"
+	"zupper/repo/configdb"
 	"zupper/repo/selfdb"
+	"zupper/repo/znakdb"
 
 	"github.com/mechiko/dbscan"
 )
 
-// after Self() must be SelfClose() or deadlock
+// if err is nil then must after Lock launch UnLock
 func (r *Repository) Lock(t dbscan.DbInfoType) (domain.RepoDB, error) {
 	r.logger.Infof("repo Lock %v", t)
+	info := r.dbs.Info(t)
+	if info == nil {
+		return nil, fmt.Errorf("repo lock dbinfo is nil for %v", t)
+	}
 	mu, ok := r.dbMutex[t]
 	if ok {
 		mu.mutex.Lock()
 	} else {
 		return nil, fmt.Errorf("repo lock not present mutex %v", t)
 	}
-	info := r.dbs.Info(t)
-	if info != nil {
-		switch t {
-		case dbscan.A3:
-		case dbscan.Config:
-		case dbscan.TrueZnak:
-		case dbscan.Other:
-			return selfdb.New(r.logger, info, t, false)
-		default:
-			return nil, fmt.Errorf("repo lock not present type mutex %v", t)
-		}
+	switch t {
+	case dbscan.Config:
+		return configdb.New(info, t)
+	case dbscan.TrueZnak:
+		return znakdb.New(info, t)
+	case dbscan.Other:
+		return selfdb.New(r.logger, info, t, false)
+	default:
+		mu.mutex.Unlock()
+		return nil, fmt.Errorf("repo lock not present type mutex %v", t)
 	}
-	return nil, nil
 }
 
 func (r *Repository) Unlock(t dbscan.DbInfoType) error {

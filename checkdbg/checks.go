@@ -2,23 +2,25 @@ package checkdbg
 
 import (
 	"fmt"
-
 	"zupper/domain"
-	"zupper/repo"
+
+	"go.uber.org/zap"
 )
 
 const modError = "pkg:checkdbg"
 
 type Checks struct {
-	domain.Apper
-	repo *repo.Repository
+	loger *zap.SugaredLogger
+	repo  domain.Repo
 }
 
-func NewChecks(app domain.Apper, repo *repo.Repository) *Checks {
+func NewChecks(loger *zap.SugaredLogger, repo domain.Repo) (*Checks, error) {
+	// инициализируем REPO
+	// TODO изменить получение путей из конфига
 	return &Checks{
-		Apper: app,
+		loger: loger,
 		repo:  repo,
-	}
+	}, nil
 }
 
 func (c *Checks) Run() (err error) {
@@ -27,9 +29,14 @@ func (c *Checks) Run() (err error) {
 			err = fmt.Errorf("%s Run panic %v", modError, r)
 		}
 	}()
-
-	// if err := c.TestUtilityParseCis(); err != nil {
-	// 	return err
-	// }
+	if err := c.TestDbConfigContact(); err != nil {
+		return err
+	}
+	if err := c.TestDbConfigReleaseMethod(); err != nil {
+		return err
+	}
+	if err := c.TestDbConfigContactWithoutLock(); err != nil {
+		return err
+	}
 	return nil
 }
