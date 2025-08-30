@@ -6,54 +6,41 @@ import (
 	"html/template"
 	"path/filepath"
 	"zupper/config"
-
-	"github.com/mechiko/utility"
 )
 
-func (tt *templateString) tmplMustHmtl(tmpl string, tmplName string, data interface{}) (ss string, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			ss = ""
-			err = fmt.Errorf("panic templateString %v", r)
-		}
-	}()
+func (tt *templateString) tmplHmtl(tmpl string, tmplName string, data interface{}, f template.FuncMap) (ss string, err error) {
 	var buf bytes.Buffer
 
-	ftmpl_src := filepath.Join(TemplateSrc, tmplName)
-	if config.Mode == "production" {
-		if utility.PathOrFileExists(tmplName) {
-			t := template.Must(template.New(tmplName).Funcs(funcMapHtml).ParseFiles(tmplName))
-			err = t.ExecuteTemplate(&buf, tmplName, data)
-			if err != nil {
-				return "", err
-			}
-		} else {
-			t := template.Must(template.New(tmplName).Funcs(funcMapHtml).Parse(tmpl))
-			err = t.ExecuteTemplate(&buf, tmplName, data)
-			if err != nil {
-				return "", err
-			}
+	templateFileAbs := filepath.Join(rootPathTemplates(), tmplName)
+	fncMap := funcMapText
+	if f != nil {
+		fncMap = f
+	}
+	// в режиме отладки считываем файл шаблона и обрабатываем его
+	if config.Mode == "development" {
+		strTemplate, err := readFile(templateFileAbs)
+		if err != nil {
+			// файл не может быть прочитан выводим ошибку
+			return "", fmt.Errorf("uctemplate ошибка файла шаблона %s %w", tmplName, err)
+		}
+		t, err := template.New(tmplName).Funcs(fncMap).Parse(strTemplate)
+		if err != nil {
+			return "", fmt.Errorf("uctemplate error parse %s %w", tmplName, err)
+		}
+		err = t.ExecuteTemplate(&buf, tmplName, data)
+		if err != nil {
+			return "", fmt.Errorf("uctemplate error execute %s %w", tmplName, err)
+		}
+		return buf.String(), err
+	} else {
+		t, err := template.New(tmplName).Funcs(fncMap).Parse(tmpl)
+		if err != nil {
+			return "", fmt.Errorf("uctemplate error parse %s %w", tmplName, err)
+		}
+		err = t.ExecuteTemplate(&buf, tmplName, data)
+		if err != nil {
+			return "", fmt.Errorf("uctemplate error execute %s %w", tmplName, err)
 		}
 		return buf.String(), err
 	}
-	if utility.PathOrFileExists(ftmpl_src) {
-		t := template.Must(template.New(tmplName).Funcs(funcMapHtml).ParseFiles(ftmpl_src))
-		err = t.ExecuteTemplate(&buf, tmplName, data)
-		if err != nil {
-			return "", err
-		}
-	} else if utility.PathOrFileExists(tmplName) {
-		t := template.Must(template.New(tmplName).Funcs(funcMapHtml).ParseFiles(tmplName))
-		err = t.ExecuteTemplate(&buf, tmplName, data)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		t := template.Must(template.New(tmplName).Funcs(funcMapHtml).Parse(tmpl))
-		err = t.ExecuteTemplate(&buf, tmplName, data)
-		if err != nil {
-			return "", err
-		}
-	}
-	return buf.String(), err
 }

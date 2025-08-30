@@ -13,7 +13,7 @@ type Repo interface {
 	Shutdown()
 	Run(context.Context) error
 	Lock(dbscan.DbInfoType) (RepoDB, error)
-	Unlock(dbscan.DbInfoType) error
+	Unlock(RepoDB) error
 	Info(t dbscan.DbInfoType) *dbscan.DbInfo
 	ListDbs() (out []dbscan.DbInfoType)
 }

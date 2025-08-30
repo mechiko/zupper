@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const modError = "selfdb"
+const modError = "configdb"
 
 type DbConfig struct {
 	logger    *zap.SugaredLogger
@@ -19,18 +19,20 @@ type DbConfig struct {
 	version   int64
 }
 
-func New(info *dbscan.DbInfo, infoType dbscan.DbInfoType) (*DbConfig, error) {
+func New(info *dbscan.DbInfo) (*DbConfig, error) {
 	db := &DbConfig{
-		dbInfo: info,
+		dbInfo:   info,
+		infoType: dbscan.Config,
 	}
 	if info == nil {
 		return nil, fmt.Errorf("%s dbinfo is nil", modError)
 	}
-	// persist type for InfoType()
-	db.infoType = infoType
 	// открываем сесиию в этом методе если нет ошибки
 	if err := db.Check(); err != nil {
 		return nil, fmt.Errorf("%s error check %v", modError, err)
+	}
+	if db.dbSession == nil {
+		return nil, fmt.Errorf("%s error after check dbsession nil", modError)
 	}
 	return db, nil
 }

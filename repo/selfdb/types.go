@@ -6,23 +6,21 @@ import (
 
 	"github.com/mechiko/dbscan"
 	"github.com/upper/db/v4"
-	"go.uber.org/zap"
 )
 
 const modError = "selfdb"
 
 type DbSelf struct {
-	logger    *zap.SugaredLogger
 	dbSession db.Session // открытый хэндл тут
 	dbInfo    *dbscan.DbInfo
 	infoType  dbscan.DbInfoType
 	version   int64
 }
 
-func New(logger *zap.SugaredLogger, info *dbscan.DbInfo, infoType dbscan.DbInfoType, create bool) (*DbSelf, error) {
+func New(info *dbscan.DbInfo) (*DbSelf, error) {
 	db := &DbSelf{
-		logger: logger,
-		dbInfo: info,
+		dbInfo:   info,
+		infoType: dbscan.Other,
 	}
 	if info == nil {
 		return nil, fmt.Errorf("%s dbinfo is nil", modError)
@@ -30,7 +28,7 @@ func New(logger *zap.SugaredLogger, info *dbscan.DbInfo, infoType dbscan.DbInfoT
 	// передаем флаг о необходимости создания, это при запуске приложения из repo
 	// проверяем, если нет создаем, если надо мигрируем
 	// открываем сесиию в этом методе если нет ошибки
-	if err := db.Check(create); err != nil {
+	if err := db.Check(); err != nil {
 		return nil, fmt.Errorf("%s error check %v", modError, err)
 	}
 	return db, nil

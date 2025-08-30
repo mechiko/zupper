@@ -21,7 +21,7 @@ type ucexcel struct {
 	Apper
 	layout             string
 	template           string
-	name               string
+	nameFile           string
 	address            domain.ExcelAddress
 	sheet              string
 	file               *excelize.File
@@ -36,7 +36,7 @@ type ucexcel struct {
 	celStyle           excelize.Style
 }
 
-func New(app Apper, layout string, template string, name string) *ucexcel {
+func New(app Apper, layout string, template string, nameFile string) *ucexcel {
 	if layout == "" {
 		layout = app.Options().Layouts.TimeLayoutDay
 	}
@@ -44,7 +44,7 @@ func New(app Apper, layout string, template string, name string) *ucexcel {
 		// Apper:    app,
 		layout:   layout,
 		template: template,
-		name:     name,
+		nameFile: nameFile,
 		address:  address.New(14, 0),
 	}
 	excel.celStyle = excelize.Style{

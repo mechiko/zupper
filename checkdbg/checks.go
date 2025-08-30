@@ -38,5 +38,8 @@ func (c *Checks) Run() (err error) {
 	if err := c.TestDbConfigContactWithoutLock(); err != nil {
 		return err
 	}
+	if err := c.TestDbWG(); err != nil {
+		return err
+	}
 	return nil
 }

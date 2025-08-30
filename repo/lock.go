@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"errors"
 	"fmt"
 	"zupper/domain"
 	"zupper/repo/configdb"
@@ -11,6 +12,7 @@ import (
 )
 
 // if err is nil then must after Lock launch UnLock
+// всегда или открывает базу и проверяет объект или возвращает ошибку
 func (r *Repository) Lock(t dbscan.DbInfoType) (domain.RepoDB, error) {
 	r.logger.Infof("repo Lock %v", t)
 	info := r.dbs.Info(t)
@@ -25,24 +27,44 @@ func (r *Repository) Lock(t dbscan.DbInfoType) (domain.RepoDB, error) {
 	}
 	switch t {
 	case dbscan.Config:
-		return configdb.New(info, t)
+		db, err := configdb.New(info)
+		if err != nil {
+			mu.mutex.Unlock()
+			return nil, fmt.Errorf("repo lock open %v error %w", db.InfoType(), err)
+		}
+		return db, nil
 	case dbscan.TrueZnak:
-		return znakdb.New(info, t)
+		db, err := znakdb.New(info)
+		if err != nil {
+			mu.mutex.Unlock()
+			return nil, fmt.Errorf("repo lock open %v error %w", db.InfoType(), err)
+		}
+		return db, nil
 	case dbscan.Other:
-		return selfdb.New(r.logger, info, t, false)
+		db, err := selfdb.New(info)
+		if err != nil {
+			mu.mutex.Unlock()
+			return nil, fmt.Errorf("repo lock open %v error %w", db.InfoType(), err)
+		}
+		return db, nil
 	default:
 		mu.mutex.Unlock()
 		return nil, fmt.Errorf("repo lock not present type mutex %v", t)
 	}
 }
 
-func (r *Repository) Unlock(t dbscan.DbInfoType) error {
-	r.logger.Infof("repo UnLock %v", t)
-	mu, ok := r.dbMutex[t]
+func (r *Repository) Unlock(db domain.RepoDB) error {
+	if db == nil {
+		return fmt.Errorf("repo: unlock error db for unlock is nil")
+	}
+	errClose := db.Close()
+	r.logger.Infof("repo UnLock %v", db.InfoType())
+	mu, ok := r.dbMutex[db.InfoType()]
 	if ok {
 		mu.mutex.Unlock()
 	} else {
-		return fmt.Errorf("%s unlock not present mutex %v", modError, dbscan.Other)
+		errUnlock := fmt.Errorf("%s unlock not present mutex %v", modError, dbscan.Other)
+		return errors.Join(errClose, errUnlock)
 	}
-	return nil
+	return errClose
 }

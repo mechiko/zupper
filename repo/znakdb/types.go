@@ -19,10 +19,10 @@ type DbZnak struct {
 	version   int64
 }
 
-func New(info *dbscan.DbInfo, infoType dbscan.DbInfoType) (*DbZnak, error) {
+func New(info *dbscan.DbInfo) (*DbZnak, error) {
 	db := &DbZnak{
 		dbInfo:   info,
-		infoType: infoType,
+		infoType: dbscan.TrueZnak,
 	}
 	if info == nil {
 		return nil, fmt.Errorf("%s dbinfo is nil", modError)

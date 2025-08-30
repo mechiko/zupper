@@ -5,6 +5,7 @@ import (
 	"zupper/repo/configdb"
 
 	"github.com/mechiko/dbscan"
+	"golang.org/x/sync/errgroup"
 )
 
 func (c *Checks) TestDbConfigContact() error {
@@ -12,12 +13,7 @@ func (c *Checks) TestDbConfigContact() error {
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
-	if db != nil {
-		// выполняются в обратном порядке
-		// поэтому анлок должен быть последним выполненным
-		defer c.repo.Unlock(dbscan.Config)
-		defer db.Close()
-	}
+	defer c.repo.Unlock(db)
 
 	dbCfg, ok := db.(*configdb.DbConfig)
 	if !ok {
@@ -36,8 +32,7 @@ func (c *Checks) TestDbConfigReleaseMethod() error {
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
-	defer c.repo.Unlock(dbscan.Config)
-	defer db.Close()
+	defer c.repo.Unlock(db)
 
 	dbCfg, ok := db.(*configdb.DbConfig)
 	if !ok {
@@ -56,7 +51,7 @@ func (c *Checks) TestDbConfigContactWithoutLock() (err error) {
 	if info == nil {
 		return fmt.Errorf("базы config не найдено")
 	}
-	db, err := configdb.New(info, dbscan.Config)
+	db, err := configdb.New(info)
 	if err != nil {
 		return fmt.Errorf("error open 4z db")
 	}
@@ -77,4 +72,16 @@ func (c *Checks) TestDbConfigContactWithoutLock() (err error) {
 	}
 	c.loger.Infof("pass TestDbConfigContactWithoutLock() key(contact_person) : %s", val)
 	return nil
+}
+
+func (c *Checks) TestDbWG() error {
+	g := new(errgroup.Group)
+	g.Go(c.TestDbConfigContact)
+	g.Go(c.TestDbConfigReleaseMethod)
+	g.Go(c.TestDbConfigContactWithoutLock)
+	err := g.Wait()
+	if err == nil {
+		c.loger.Info("Successfully examen all test paralel.")
+	}
+	return err
 }

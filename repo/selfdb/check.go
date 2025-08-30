@@ -12,7 +12,7 @@ import (
 
 // проверка наличия создание и миграция
 // вызывается однажды при старте программы
-func (r *DbSelf) Check(create bool) (err error) {
+func (r *DbSelf) Check() (err error) {
 	defer func() {
 		if rr := recover(); rr != nil {
 			err = fmt.Errorf("%s check panic %v", modError, rr)

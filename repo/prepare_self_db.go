@@ -28,7 +28,7 @@ func (r *Repository) prepareSelf() (err error) {
 				r.logger.Errorf("%s self.Close %v", modError, errClose)
 				dErr = errors.Join(dErr, fmt.Errorf("%s selfdb close: %w", modError, errClose))
 			}
-			if errUnLock := r.Unlock(dbscan.Other); errUnLock != nil {
+			if errUnLock := r.Unlock(self); errUnLock != nil {
 				r.logger.Errorf("%s unlock error %v", modError, errUnLock)
 				dErr = errors.Join(dErr, fmt.Errorf("%s selfdb unlock: %w", modError, errUnLock))
 			}

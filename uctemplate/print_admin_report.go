@@ -5,7 +5,7 @@ import (
 	"zupper/domain"
 )
 
-//go:embed tmplAdminReport.html
+//go:embed templates/tmplAdminReport.html
 var tmplAdminReport string
 
 type htmlAdminReport struct {
@@ -21,7 +21,7 @@ func (tt *templateString) PrintAdminReport(adm *domain.AdminReport) (string, err
 	}
 
 	// вызов шаблона в него передаем имя шаблона как имя файла шаблона
-	if result, err := tt.tmplMustHmtl(tmplAdminReport, tmplName, report); err != nil {
+	if result, err := tt.tmplHmtl(tmplAdminReport, tmplName, report, nil); err != nil {
 		return "", err
 	} else {
 		return result, err
