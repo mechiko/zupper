@@ -81,7 +81,7 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 								Text:    "Проверка БД",
 								OnClicked: func() {
 									base := p.BaseUrl()
-									uri := path.Join(base, "/maintain/adminreport")
+									uri := path.Join(base, "/maintain/statusdb")
 									if err := utility.OpenHttpLinkInShell(uri); err != nil {
 										p.Logger().Errorf("open uri error %w", err)
 									}

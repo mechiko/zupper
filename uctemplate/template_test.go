@@ -25,7 +25,7 @@ func TestTemplate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			templ := NewTemplate("", false)
 			// вызов шаблона в него передаем имя шаблона как имя файла шаблона
-			_, err := templ.tmplHmtl(tmplAdminReport, tt.template, tt.model, nil)
+			_, err := templ.tmplHtml(tmplAdminReport, tt.template, tt.model, nil)
 			if tt.err {
 				assert.NotNil(t, err, "ожидаем ошибку")
 			} else {

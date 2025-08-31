@@ -21,7 +21,7 @@ func (tt *templateString) PrintAdminReport(adm *domain.AdminReport) (string, err
 	}
 
 	// вызов шаблона в него передаем имя шаблона как имя файла шаблона
-	if result, err := tt.tmplHmtl(tmplAdminReport, tmplName, report, nil); err != nil {
+	if result, err := tt.tmplHtml(tmplAdminReport, tmplName, report, nil); err != nil {
 		return "", err
 	} else {
 		return result, err
