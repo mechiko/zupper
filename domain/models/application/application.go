@@ -46,7 +46,7 @@ func New(app domain.Apper, repo domain.Repo) (*Application, error) {
 
 // синхронизирует с приложением в сторону приложения из модели редуктора
 func (m *Application) SyncToStore(app domain.Apper) (err error) {
-	app.SaveOptions("export", m.Export)
+	app.SetOptions("export", m.Export)
 	// ...
 	return err
 }

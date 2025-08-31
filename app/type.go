@@ -50,7 +50,7 @@ func New(cfg *config.Config, logger *zap.SugaredLogger, pwd string) *app {
 	newApp.uuid = uuid.New().String()
 	newApp.initDateMn()
 	newApp.options.Export = "local copy"
-	if err := newApp.SaveOptions("export", "config copy"); err != nil {
+	if err := newApp.SetOptions("export", "config copy"); err != nil {
 		fmt.Println(err)
 	}
 	return newApp
@@ -98,11 +98,12 @@ func (a *app) EndDate() time.Time {
 }
 
 func (a *app) FsrarID() string {
-	return a.Config().Configuration().Application.Fsrarid
+	return a.options.Application.Fsrarid
 }
 
 func (a *app) SetFsrarID(id string) {
-	a.Config().SetInConfig("application.fsrarid", id)
+	a.SetOptions("application.fsrarid", id)
+	a.SaveOptions()
 }
 
 func (a *app) Pwd() string {
@@ -143,17 +144,16 @@ func (a *app) Options() *config.Configuration {
 }
 
 // записываем ключ и его значение только в пакет config
-// изменения записываются в файл конфигурации
-func (a *app) SaveOptions(key string, value any) error {
+// и Options
+// изменения не записываются в файл конфигурации
+func (a *app) SetOptions(key string, value any) error {
 	a.config.SetInConfig(key, value)
-	if err := a.config.Save(); err != nil {
-		return fmt.Errorf("save in config error %w", err)
-	}
+	a.options = a.config.Configuration()
 	return nil
 }
 
-// изменения записываются в файл конфигурации
-func (a *app) SaveAllOptions() error {
+// записываем файл конфигурации состояние конфигурации
+func (a *app) SaveOptions() error {
 	if err := a.config.Save(); err != nil {
 		return fmt.Errorf("save all in config error %w", err)
 	}
@@ -223,7 +223,12 @@ func (a *app) LogPath() string {
 }
 
 func (a *app) BaseUrl() string {
-	uri := fmt.Sprintf("http://%s:%s", a.options.Hostname, a.options.HostPort)
+	host := a.options.Hostname
+	port := a.options.HostPort
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	uri := fmt.Sprintf("%s:%s", host, port)
 	return uri
 }
 

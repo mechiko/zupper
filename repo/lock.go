@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"zupper/domain"
+	"zupper/repo/a3"
 	"zupper/repo/configdb"
 	"zupper/repo/selfdb"
 	"zupper/repo/znakdb"
@@ -30,21 +31,28 @@ func (r *Repository) Lock(t dbscan.DbInfoType) (domain.RepoDB, error) {
 		db, err := configdb.New(info)
 		if err != nil {
 			mu.mutex.Unlock()
-			return nil, fmt.Errorf("repo lock open %v error %w", db.InfoType(), err)
+			return nil, fmt.Errorf("repo lock open %v error %w", t, err)
+		}
+		return db, nil
+	case dbscan.A3:
+		db, err := a3.New(info)
+		if err != nil {
+			mu.mutex.Unlock()
+			return nil, fmt.Errorf("repo lock open %v error %w", t, err)
 		}
 		return db, nil
 	case dbscan.TrueZnak:
 		db, err := znakdb.New(info)
 		if err != nil {
 			mu.mutex.Unlock()
-			return nil, fmt.Errorf("repo lock open %v error %w", db.InfoType(), err)
+			return nil, fmt.Errorf("repo lock open %v error %w", t, err)
 		}
 		return db, nil
 	case dbscan.Other:
 		db, err := selfdb.New(info)
 		if err != nil {
 			mu.mutex.Unlock()
-			return nil, fmt.Errorf("repo lock open %v error %w", db.InfoType(), err)
+			return nil, fmt.Errorf("repo lock open %v error %w", t, err)
 		}
 		return db, nil
 	default:
@@ -63,7 +71,7 @@ func (r *Repository) Unlock(db domain.RepoDB) error {
 	if ok {
 		mu.mutex.Unlock()
 	} else {
-		errUnlock := fmt.Errorf("%s unlock not present mutex %v", modError, dbscan.Other)
+		errUnlock := fmt.Errorf("%s unlock not present mutex %v", modError, db.InfoType())
 		return errors.Join(errClose, errUnlock)
 	}
 	return errClose

@@ -41,11 +41,12 @@ func (p *PingSuzInfo) String() string {
 }
 
 func (m *TrueClientModel) Sync(cfg domain.Apper) {
-	cfg.SaveOptions("trueclient.test", m.Test)
-	cfg.SaveOptions("trueclient.deviceid", m.DeviceID)
-	cfg.SaveOptions("trueclient.hashkey", m.HashKey)
-	cfg.SaveOptions("trueclient.omsid", m.OmsID)
-	cfg.SaveOptions("trueclient.useconfigdb", m.UseConfigDB)
+	cfg.SetOptions("trueclient.test", m.Test)
+	cfg.SetOptions("trueclient.deviceid", m.DeviceID)
+	cfg.SetOptions("trueclient.hashkey", m.HashKey)
+	cfg.SetOptions("trueclient.omsid", m.OmsID)
+	cfg.SetOptions("trueclient.useconfigdb", m.UseConfigDB)
+	cfg.SaveOptions()
 }
 
 // когда считываем конфиг сбрасываем токены и время авторизации

@@ -172,7 +172,7 @@ func main() {
 		if portFree, err := utility.GetFreePort(); err == nil {
 			port = fmt.Sprintf("%d", portFree)
 			// порт не записываем в файл конфигурации остается только в модели приложения
-			app.Config().SetInConfig("hostport", port)
+			app.SetOptions("hostport", port)
 		}
 	}
 	loger.Infof("http port %s", port)

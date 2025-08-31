@@ -9,8 +9,8 @@ import (
 
 type Apper interface {
 	Options() *config.Configuration
-	SaveOptions(key string, value interface{}) error
-	SaveAllOptions() error
+	SetOptions(key string, value interface{}) error
+	SaveOptions() error
 	Logger() *zap.SugaredLogger
 	ConfigPath() string
 	DefaultDbPath() string
@@ -25,4 +25,5 @@ type Apper interface {
 	EndDate() time.Time
 	FsrarID() string
 	Pwd() string
+	BaseUrl() string
 }

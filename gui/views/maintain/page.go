@@ -2,10 +2,12 @@ package maintain
 
 import (
 	"fmt"
+	"path"
 	"zupper/domain"
 	"zupper/gui/types"
 	"zupper/repo"
 
+	"github.com/mechiko/utility"
 	"github.com/mechiko/walk"
 	dcl "github.com/mechiko/walk/declarative"
 )
@@ -78,8 +80,11 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 								MaxSize: dcl.Size{Width: 250},
 								Text:    "Проверка БД",
 								OnClicked: func() {
-									// uri := path.Join(p.app.BaseUrl(), "/v1/maintain/adminreport")
-									// p.app.Open(uri)
+									base := p.BaseUrl()
+									uri := path.Join(base, "/maintain/adminreport")
+									if err := utility.OpenHttpLinkInShell(uri); err != nil {
+										p.Logger().Errorf("open uri error %w", err)
+									}
 								},
 							},
 							dcl.TextLabel{

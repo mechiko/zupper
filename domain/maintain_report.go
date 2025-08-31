@@ -20,14 +20,14 @@ type AdminReport struct {
 }
 
 type AbsentItem struct {
-	Id string `boil:"id"`
+	Id string `db:"id"`
 }
 
 type AbsentItemSlice []*AbsentItem
 
 type FormDouble struct {
-	Id    string `boil:"id"`
-	Total int64  `boil:"total"`
+	Id    string `db:"id"`
+	Total int64  `db:"total"`
 }
 
 type FormDoubleSlice []*FormDouble

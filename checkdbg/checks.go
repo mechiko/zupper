@@ -29,6 +29,13 @@ func (c *Checks) Run() (err error) {
 			err = fmt.Errorf("%s Run panic %v", modError, r)
 		}
 	}()
+
+	if err := c.TestDbA3BuilderGroupMap(); err != nil {
+		return err
+	}
+	if err := c.TestDbA3RawGroupStruct(); err != nil {
+		return err
+	}
 	if err := c.TestDbConfigContact(); err != nil {
 		return err
 	}

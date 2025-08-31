@@ -12,7 +12,7 @@ func (tt *templateString) tmplHmtl(tmpl string, tmplName string, data interface{
 	var buf bytes.Buffer
 
 	templateFileAbs := filepath.Join(rootPathTemplates(), tmplName)
-	fncMap := funcMapText
+	fncMap := funcMapHtml
 	if f != nil {
 		fncMap = f
 	}
