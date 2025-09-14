@@ -24,6 +24,7 @@ type page struct {
 	defaultTemplate string
 	currentTemplate string
 	title           string
+	name            string
 }
 
 func New(app IServer) *page {
@@ -33,6 +34,7 @@ func New(app IServer) *page {
 		defaultTemplate: "index",
 		currentTemplate: "index",
 		title:           "Нанесение сегодня",
+		name:            strings.ToLower(string(domain.ProdTools)),
 	}
 	return t
 }
@@ -49,7 +51,7 @@ func (p *page) CurrentTemplate() string {
 
 // low caps name
 func (p *page) Name() string {
-	return strings.ToLower(string(p.model))
+	return p.name
 }
 
 func (p *page) Model() domain.Model {

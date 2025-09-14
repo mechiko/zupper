@@ -58,9 +58,9 @@ func New(a domain.Apper) (s *trueClient) {
 	}
 	model, ok := reductorModel.(*TrueClientModel)
 	if !ok {
-		strErr := fmt.Sprintf("reductor model trueclient wrong type %T", reductorModel)
-		a.Logger().Error(strErr)
-		panic(strErr)
+		errType := fmt.Errorf("%s: reductor model trueclient wrong type %T", modError, reductorModel)
+		a.Logger().Errorw("reductor model type assertion failed", "expected", "*TrueClientModel", "actual", fmt.Sprintf("%T", reductorModel), "err", errType)
+		panic(errType)
 	}
 	s = &trueClient{
 		Apper:      a,

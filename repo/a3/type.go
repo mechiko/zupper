@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const modError = "selfdb"
+const modError = "a3db"
 
 type DbA3 struct {
 	logger    *zap.SugaredLogger

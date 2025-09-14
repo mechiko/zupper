@@ -20,12 +20,12 @@ type DbConfig struct {
 }
 
 func New(info *dbscan.DbInfo) (*DbConfig, error) {
+	if info == nil {
+		return nil, fmt.Errorf("%s dbinfo is nil", modError)
+	}
 	db := &DbConfig{
 		dbInfo:   info,
 		infoType: dbscan.Config,
-	}
-	if info == nil {
-		return nil, fmt.Errorf("%s dbinfo is nil", modError)
 	}
 	// открываем сесиию в этом методе если нет ошибки
 	if err := db.Check(); err != nil {

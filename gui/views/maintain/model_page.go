@@ -6,7 +6,7 @@ import (
 	"zupper/reductor"
 )
 
-// возращаем указатель на модель полученную из редуктора
+// возвращаем указатель на модель полученную из редуктора
 func (p *MaintainPage) PageModel() (interface{}, error) {
 	model, err := reductor.Instance().Model(p.model)
 	if err != nil {
@@ -17,19 +17,20 @@ func (p *MaintainPage) PageModel() (interface{}, error) {
 
 // с преобразованием
 // если ошибка чтения модели то возвращаем модель из приложения
+// с преобразованием типа к *application.Application
 func (p *MaintainPage) Model() (*application.Application, error) {
 	if reductor.Instance().IsExistModel(p.model) {
 		reductorModel, err := reductor.Instance().Model(p.model)
 		if err != nil {
 			return nil, fmt.Errorf("view:maintain read model: %w", err)
 		}
-    if mdl, ok := reductorModel.(*application.Application); ok {
-      return mdl, nil
-    }
-    if v, ok := reductorModel.(application.Application); ok {
-      return &v, nil
-    }
-    return nil, fmt.Errorf("view:maintain unexpected model type %T", reductorModel)
+		if mdl, ok := reductorModel.(*application.Application); ok {
+			return mdl, nil
+		}
+		if v, ok := reductorModel.(application.Application); ok {
+			return &v, nil
+		}
+		return nil, fmt.Errorf("view:maintain unexpected model type %T", reductorModel)
 	}
 	return nil, fmt.Errorf("view:maintain нет такой модели в редукторе")
 }

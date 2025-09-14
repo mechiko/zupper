@@ -4,10 +4,10 @@ import (
 	"zupper/domain"
 )
 
-// обязательные методы для реализации интерфейса types.Page
+// Required methods to implement the types.Page interface
 
-// через эту функцию прописывает метод обратного вызова для записи в канал смены состояния
-// так можно использовать в кнопке вызов отправки в канал
+// SetSendFunc sets the callback method for writing to the state change channel
+// This allows button calls to send to the channel:
 //
 //	if p.sendChan != nil {
 //		p.sendChan(p.model)
@@ -20,5 +20,7 @@ func (p *ZnakToolsPage) SetSendFunc(f func(domain.Model)) {
 func (p *ZnakToolsPage) Update() {
 }
 
+// Clear resets the page to its initial state
 func (p *ZnakToolsPage) Clear() {
+	// TODO: Implement page clearing logic
 }

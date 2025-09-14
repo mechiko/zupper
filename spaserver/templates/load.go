@@ -73,7 +73,9 @@ func (t *Templates) parsePageHtml(page domain.Model, html string, templ *templat
 		if txt, err := io.ReadAll(file); err != nil {
 			return fmt.Errorf("%s %w", modError, err)
 		} else {
-			templ.New(name).Funcs(functions).Parse(string(txt))
+			if _, err := templ.New(name).Funcs(functions).Parse(string(txt)); err != nil {
+				return fmt.Errorf("%s template parse error: %w", modError, err)
+			}
 		}
 	}
 	return nil

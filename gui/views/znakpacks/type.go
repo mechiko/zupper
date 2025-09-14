@@ -54,16 +54,8 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 		parent: parent.Form(),
 		model:  domain.ZnakAgregate,
 	}
-	if f, e := walk.NewFont("JetBrains Mono", 9, 0); e == nil {
-		p.smallFont = f
-	} else if p.Logger() != nil {
-		p.Logger().Warnf("%s font small create: %v", modError, e)
-	}
-	if f, e := walk.NewFont("JetBrains Mono", 10, walk.FontBold); e == nil {
-		p.tableFont = f
-	} else if p.Logger() != nil {
-		p.Logger().Warnf("%s font table create: %v", modError, e)
-	}
+	p.smallFont = p.initFont("JetBrains Mono", 9, 0)
+	p.tableFont = p.initFont("JetBrains Mono", 10, walk.FontBold)
 
 	var model *znakagregate.ZnakAgregate
 	// инициализируем модель и сохраняем в редукторе
@@ -75,14 +67,22 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 		}
 	} else {
 		if model, err = znakagregate.New(p.Apper, repo); err != nil {
-			return nil, fmt.Errorf("view:znak ошибка создания модели %s %v", p.model, err)
+			return nil, fmt.Errorf("view:znakpacks ошибка создания модели %s %v", p.model, err)
 		}
 		if err := reductor.Instance().SetModel(model, false); err != nil {
-			return nil, fmt.Errorf("view:znak ошибка записи модели в редуктор %s %v", p.model, err)
+			return nil, fmt.Errorf("view:znakpacks ошибка записи модели в редуктор %s %v", p.model, err)
 		}
 	}
 	if err = p.dclCreate(parent, model); err != nil {
-		return nil, fmt.Errorf("page znak dcl create %w", err)
+		return nil, fmt.Errorf("page znakpacks dcl create %w", err)
 	}
 	return p, nil
+}
+
+func (p *ZnakPage) initFont(name string, size int, style walk.FontStyle) *walk.Font {
+	f, err := walk.NewFont(name, size, style)
+	if err != nil && p.Logger() != nil {
+		p.Logger().Warnf("%s font create (size %d): %v", modError, size, err)
+	}
+	return f
 }

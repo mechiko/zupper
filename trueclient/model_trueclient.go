@@ -62,7 +62,10 @@ func (m *TrueClientModel) Sync(cfg domain.Apper) {
 }
 
 func (m *TrueClientModel) Save(cfg domain.Apper) error {
-	return cfg.SaveOptions()
+	if err := cfg.SaveOptions(); err != nil {
+		return fmt.Errorf("failed to save TrueClient options: %w", err)
+	}
+	return nil
 }
 
 // когда считываем конфиг сбрасываем токены и время авторизации

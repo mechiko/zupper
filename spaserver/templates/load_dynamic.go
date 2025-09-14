@@ -73,7 +73,7 @@ func (t *Templates) parsePageHtmlDyn(fs fs.FS, page domain.Model, html string, t
 
 	name, _ := strings.CutSuffix(path.Base(html), path.Ext(html))
 	pt := page.String()
-	filePath := path.Join(pt, html)
+	filePath := filepath.Join(pt, html)
 
 	file, err := fs.Open(filePath)
 	if err != nil {

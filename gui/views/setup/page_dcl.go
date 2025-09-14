@@ -45,13 +45,6 @@ func (p *SetupPage) dclCreate(parent walk.Container, model *application.Applicat
 						Value:    model.Browser,
 						Model:    model.BrowserList,
 						OnCurrentIndexChanged: func() {
-							// Prevent UI crash if reductor.Instance() panics.
-							defer func() {
-								if r := recover(); r != nil {
-									p.Logger().Errorf("reductor.Instance panic: %v", r)
-								}
-							}()
-
 							p.Logger().Debug("browser current index change")
 							txt := p.browserCB.Text()
 

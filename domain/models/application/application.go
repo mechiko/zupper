@@ -49,10 +49,10 @@ func New(app domain.Apper, repo domain.Repo) (*Application, error) {
 // синхронизирует с приложением в сторону приложения из модели редуктора
 func (m *Application) SyncToStore(app domain.Apper) (err error) {
 	if err := app.SetOptions("export", m.Export); err != nil {
-		return fmt.Errorf("application: set export failed: %w", err)
+		return fmt.Errorf("application sync to store: set export failed: %w", err)
 	}
 	if err := app.SetOptions("browser", m.Browser); err != nil {
-		return fmt.Errorf("application: set browser failed: %w", err)
+		return fmt.Errorf("application sync to store: set browser failed: %w", err)
 	}
 	return nil
 }
