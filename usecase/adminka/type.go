@@ -1,7 +1,6 @@
 package adminka
 
 import (
-	"fmt"
 	"zupper/domain"
 
 	"github.com/labstack/echo/v4"
@@ -21,30 +20,14 @@ func New(a domain.Apper) *adminka {
 }
 
 func (a *adminka) Routes(server *echo.Echo) {
-	server.GET("/maintain/:report", a.SwitchGetReport)
-	server.POST("/maintain/:report", a.SwitchPostReport)
+	server.GET("/maintain/statusdb", a.GetReport)
+	server.POST("/maintain/statusdbclear", a.PostReport)
 }
 
-func (a *adminka) SwitchGetReport(c echo.Context) error {
-	report := c.Param("report")
-	switch report {
-	case "statusdb":
-		a.StatusDb(c)
-	case "statusdbclear":
-		a.StatusDbClear(c)
-	default:
-		a.ServerError(c, fmt.Errorf("нет такого отчета"))
-	}
-	return nil
+func (a *adminka) GetReport(c echo.Context) error {
+	return a.StatusDb(c)
 }
 
-func (a *adminka) SwitchPostReport(c echo.Context) error {
-	report := c.Param("report")
-	switch report {
-	case "statusdbclear":
-		a.StatusDbClear(c)
-	default:
-		a.ServerError(c, fmt.Errorf("нет такого отчета"))
-	}
-	return nil
+func (a *adminka) PostReport(c echo.Context) error {
+	return a.StatusDbClear(c)
 }

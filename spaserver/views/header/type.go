@@ -35,6 +35,7 @@ func New(app IApp) *page {
 		model:           domain.Header,
 		defaultTemplate: "content",
 		currentTemplate: "content",
+		// title:           "Меню",
 	}
 	return t
 }

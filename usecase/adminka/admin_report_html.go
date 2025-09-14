@@ -15,11 +15,15 @@ func (a *adminka) StatusDb(c echo.Context) error {
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
-	defer a.Repo().Unlock(db)
+	defer func() {
+		if uerr := a.Repo().Unlock(db); uerr != nil {
+			a.Logger().Errorf("%s unlock error %s", modError, uerr.Error())
+		}
+	}()
 
 	dbA3, ok := db.(*a3.DbA3)
 	if !ok {
-		return fmt.Errorf("db type wrong %T", db)
+		return a.ServerError(c, fmt.Errorf("%s wrong db type: got %T, want *a3.DbA3", modError, db))
 	}
 
 	admReport, err := dbA3.AdminReport()
@@ -42,16 +46,19 @@ func (a *adminka) StatusDbClear(c echo.Context) error {
 	if err != nil {
 		return a.ServerError(c, fmt.Errorf("%s %w", modError, err))
 	}
-	defer a.Repo().Unlock(db)
+	defer func() {
+		if uerr := a.Repo().Unlock(db); uerr != nil {
+			a.Logger().Errorf("%s unlock error %s", modError, uerr.Error())
+		}
+	}()
 
 	dbA3, ok := db.(*a3.DbA3)
 	if !ok {
-		return a.ServerError(c, fmt.Errorf("%s %w", modError, err))
+		return a.ServerError(c, fmt.Errorf("%s wrong db type: got %T, want *a3.DbA3", modError, db))
 	}
 
-	err = dbA3.AdminReportClear()
-	if err != nil {
+	if err := dbA3.AdminReportClear(); err != nil {
 		return a.ServerError(c, fmt.Errorf("%s %w", modError, err))
 	}
-	return c.JSON(http.StatusOK, echo.Map{})
+	return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 }

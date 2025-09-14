@@ -27,7 +27,7 @@ func (t *Templates) LoadTemplates() (err error) {
 		if page.IsDir() {
 			name, err := domain.ModelFromString(page.Name())
 			if err != nil {
-				return fmt.Errorf("%s LoadTemplatesS %w", modError, err)
+				return fmt.Errorf("%s LoadTemplates %w", modError, err)
 			}
 			if err := t.parsePage(name); err != nil {
 				return fmt.Errorf("%s %w", modError, err)

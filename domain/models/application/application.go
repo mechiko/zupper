@@ -36,8 +36,9 @@ var _ domain.Modeler = (*Application)(nil)
 // создаем модель считываем ее состояние и возвращаем указатель
 func New(app domain.Apper, repo domain.Repo) (*Application, error) {
 	model := &Application{
-		model: domain.Application,
-		Title: "Application Title",
+		model:       domain.Application,
+		Title:       "Application Title",
+		BrowserList: []string{string(utility.Default), string(utility.Chrome), string(utility.Firefox), string(utility.Yandex), string(utility.Edge)},
 	}
 	if err := model.ReadState(app, repo); err != nil {
 		return nil, fmt.Errorf("model application read state %w", err)
@@ -47,9 +48,13 @@ func New(app domain.Apper, repo domain.Repo) (*Application, error) {
 
 // синхронизирует с приложением в сторону приложения из модели редуктора
 func (m *Application) SyncToStore(app domain.Apper) (err error) {
-	app.SetOptions("export", m.Export)
-	app.SetOptions("browser", m.Browser)
-	return err
+	if err := app.SetOptions("export", m.Export); err != nil {
+		return fmt.Errorf("application: set export failed: %w", err)
+	}
+	if err := app.SetOptions("browser", m.Browser); err != nil {
+		return fmt.Errorf("application: set browser failed: %w", err)
+	}
+	return nil
 }
 
 // читаем состояние приложения
@@ -94,6 +99,8 @@ func (a *Application) Model() domain.Model {
 }
 
 func (m *Application) Save(app domain.Apper) (err error) {
-	app.SaveOptions()
-	return err
+	if err := app.SaveOptions(); err != nil {
+		return fmt.Errorf("application: save options failed: %w", err)
+	}
+	return nil
 }

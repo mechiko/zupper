@@ -47,8 +47,16 @@ func (m *MenuModel) ReadState(app domain.Apper) (err error) {
 }
 
 func (a *MenuModel) Copy() (interface{}, error) {
-	// shallow copy that`s why fields is simple
 	dst := *a
+	if a.Items != nil {
+		dst.Items = make(MenuItemSlice, len(a.Items))
+		for i, it := range a.Items {
+			if it != nil {
+				v := *it
+				dst.Items[i] = &v
+			}
+		}
+	}
 	return &dst, nil
 }
 

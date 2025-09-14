@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"zupper/domain/models/znakagregate"
 	"zupper/reductor"
-
-	"github.com/mechiko/utility"
 )
 
 // возращаем указатель на модель полученную из редуктора
@@ -20,19 +18,17 @@ func (p *ZnakToolsPage) PageModel() (interface{}, error) {
 // с преобразованием
 // если ошибка чтения модели то возвращаем модель из приложения
 func (p *ZnakToolsPage) Model() (*znakagregate.ZnakAgregate, error) {
-	if reductor.Instance().IsExistModel(p.model) {
-		reductorModel, err := reductor.Instance().Model(p.model)
-		if err != nil {
-			return nil, fmt.Errorf("%w", err)
-		}
-		if utility.IsPointer(reductorModel) {
-			mdl, ok := reductorModel.(*znakagregate.ZnakAgregate)
-			if ok {
-				return mdl, nil
-			} else {
-				return nil, fmt.Errorf("view:znak Model другой тип в редукторе %T", mdl)
-			}
-		}
+	r := reductor.Instance()
+	if !r.IsExistModel(p.model) {
+		return nil, fmt.Errorf("view:znak нет такой модели в редукторе")
 	}
-	return nil, fmt.Errorf("view:znak нет такой модели в редукторе")
+	any, err := r.Model(p.model)
+	if err != nil {
+		return nil, fmt.Errorf("view:znak get model %w", err)
+	}
+	mdl, ok := any.(*znakagregate.ZnakAgregate)
+	if !ok {
+		return nil, fmt.Errorf("view:znak Model другой тип в редукторе %T", any)
+	}
+	return mdl, nil
 }

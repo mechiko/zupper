@@ -2,19 +2,20 @@ package models
 
 import (
 	"strings"
+	"zupper/domain"
 
 	"github.com/mechiko/walk"
 )
 
 type OrderModel struct {
 	walk.TableModelBase
-	app       types.IApp
+	app       domain.Apper
 	filter    string
 	items     []*domain.OrderInfo
 	itemsShow []*domain.OrderInfo
 }
 
-func NewModel(a types.IApp) *OrderModel {
+func NewModel(a domain.Apper) *OrderModel {
 	m := &OrderModel{
 		app: a,
 	}
@@ -81,24 +82,22 @@ func (m *OrderModel) Item(i int) *domain.OrderInfo {
 }
 
 func (m *OrderModel) Filter(search string) {
-	// if search == "" {
-	// 	return
-	// }
 	m.itemsShow = make(domain.OrderInfoSlice, 0)
 	for i := range m.items {
 		if containsStr(search, m.items[i]) {
 			m.itemsShow = append(m.itemsShow, m.items[i])
 		}
 	}
-	m.PublishRowsReset()
 	m.PublishRowsChanged(0, len(m.itemsShow))
+	m.PublishRowsReset()
 }
 
 func containsStr(str string, r *domain.OrderInfo) bool {
-	if strings.Contains(r.Gtin, str) {
+	s := strings.ToLower(str)
+	if strings.Contains(strings.ToLower(r.Gtin), s) {
 		return true
 	}
-	if strings.Contains(r.ProductName, str) {
+	if strings.Contains(strings.ToLower(r.ProductName), s) {
 		return true
 	}
 	return false

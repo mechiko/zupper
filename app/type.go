@@ -17,12 +17,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// type IApp interface {
-// 	Options() *config.Configuration
-// 	SaveOptions(string, any) error
-// 	Logger() *zap.SugaredLogger
-// }
-
 type app struct {
 	ctx           context.Context
 	uuid          string // идентификатор для уникальности формы
@@ -40,8 +34,6 @@ type app struct {
 
 var _ domain.Apper = (*app)(nil)
 
-// const modError = "app"
-
 func New(cfg *config.Config, logger *zap.SugaredLogger, pwd string) *app {
 	newApp := &app{}
 	newApp.pwd = pwd
@@ -50,10 +42,6 @@ func New(cfg *config.Config, logger *zap.SugaredLogger, pwd string) *app {
 	newApp.options = cfg.Configuration()
 	newApp.uuid = uuid.New().String()
 	newApp.initDateMn()
-	newApp.options.Export = "local copy"
-	if err := newApp.SetOptions("export", "config copy"); err != nil {
-		fmt.Println(err)
-	}
 	return newApp
 }
 
@@ -70,8 +58,8 @@ func (a *app) initDateMn() {
 }
 
 func (a *app) NowDateString() string {
-	n := time.Now()
-	return fmt.Sprintf("%4d.%02d.%02d %02d:%02d:%02d", n.Local().Year(), n.Local().Month(), n.Local().Day(), n.Local().Hour(), n.Local().Minute(), n.Local().Second())
+	n := time.Now().Local()
+	return fmt.Sprintf("%4d.%02d.%02d %02d:%02d:%02d", n.Year(), n.Month(), n.Day(), n.Hour(), n.Minute(), n.Second())
 }
 
 func (a *app) StartDateString() string {
@@ -229,9 +217,11 @@ func (a *app) BaseUrl() string {
 		host = "127.0.0.1"
 	}
 	port := a.options.HostPort
-	u := &url.URL{
-		Scheme: "http",
-		Host:   fmt.Sprintf("%s:%s", host, port), // Host and port combined
+	u := &url.URL{Scheme: "http"}
+	if port != "" {
+		u.Host = fmt.Sprintf("%s:%s", host, port)
+	} else {
+		u.Host = host
 	}
 	return u.String()
 }

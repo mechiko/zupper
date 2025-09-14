@@ -33,7 +33,7 @@ func (p *ZnakPage) dclCreate(parent walk.Container, model *znakagregate.ZnakAgre
 					},
 					dcl.Label{
 						AssignTo: &p.waitStateLbl,
-						Text:     "идет расчет аггрегации тары ...",
+						Text:     "идет расчет агрегации тары ...",
 					},
 					dcl.HSpacer{},
 				},
@@ -100,7 +100,7 @@ func (p *ZnakPage) dclCreate(parent walk.Container, model *znakagregate.ZnakAgre
 						OnClicked: func() {},
 					},
 					dcl.Label{
-						AssignTo: &p.fileLbl,
+						AssignTo: &p.fileLblCn,
 						// TODO: Add specific label field for this button
 					},
 					dcl.HSpacer{},
@@ -118,7 +118,7 @@ func (p *ZnakPage) dclCreate(parent walk.Container, model *znakagregate.ZnakAgre
 						OnClicked: func() {},
 					},
 					dcl.Label{
-						AssignTo: &p.fileLbl,
+						AssignTo: &p.fileLblXml,
 						// TODO: Add specific label field for this button
 					},
 					dcl.HSpacer{},
@@ -136,7 +136,7 @@ func (p *ZnakPage) dclCreate(parent walk.Container, model *znakagregate.ZnakAgre
 						OnClicked: func() {},
 					},
 					dcl.Label{
-						AssignTo: &p.fileLbl,
+						AssignTo: &p.fileLblA3,
 						// TODO: Add specific label field for this button
 					},
 					dcl.HSpacer{},
@@ -154,7 +154,7 @@ func (p *ZnakPage) dclCreate(parent walk.Container, model *znakagregate.ZnakAgre
 						OnClicked: func() {},
 					},
 					dcl.Label{
-						AssignTo: &p.fileLbl,
+						AssignTo: &p.fileLbl1C,
 						// TODO: Add specific label field for this button
 					},
 					dcl.HSpacer{},
@@ -172,7 +172,7 @@ func (p *ZnakPage) dclCreate(parent walk.Container, model *znakagregate.ZnakAgre
 						OnClicked: func() {},
 					},
 					dcl.Label{
-						AssignTo: &p.fileLbl,
+						AssignTo: &p.fileLblCsv,
 						// TODO: Add specific label field for this button
 					},
 					dcl.HSpacer{},

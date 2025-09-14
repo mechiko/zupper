@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 	"zupper/domain"
 	"zupper/embedded"
-	"zupper/repo"
 	"zupper/spaserver/sse"
 	"zupper/spaserver/templates"
 	"zupper/spaserver/views"
@@ -39,7 +39,6 @@ type Server struct {
 	shutdownTimeout time.Duration
 	sessionManager  *scs.SessionManager
 	debug           bool
-	private         *echo.Group
 	templates       *templates.Templates
 	views           map[domain.Model]views.IView
 	menu            []domain.Model
@@ -51,7 +50,6 @@ type Server struct {
 	sseManager      *sse.Server
 	streamError     *sse.Stream
 	streamInfo      *sse.Stream
-	repo            *repo.Repository
 }
 
 // var sseManager *sse.Server
@@ -81,15 +79,29 @@ func New(a domain.Apper, zl *zap.Logger, port string, debug bool) *Server {
 		Root:       "root", // because files are located in `root` directory
 		Filesystem: http.FS(embedded.Root),
 	}))
-	// наследует родительские middleware
-	private := e.Group("/admin")
+	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+		XSSProtection:      "1; mode=block",
+		ContentTypeNosniff: "nosniff",
+		XFrameOptions:      "DENY",
+		ReferrerPolicy:     "no-referrer",
+	}))
+
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			p := c.Request().URL.Path
+			if strings.HasPrefix(p, "/assets/") || strings.HasSuffix(p, ".css") || strings.HasSuffix(p, ".js") {
+				c.Response().Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			}
+			return next(c)
+		}
+	})
+
 	ss := &Server{
 		Apper:           a,
 		addr:            addr,
 		server:          e,
 		notify:          make(chan error, 1),
 		shutdownTimeout: _defaultShutdownTimeout,
-		private:         private,
 		debug:           debug,
 		sessionManager:  sess,
 		views:           make(map[domain.Model]views.IView), // массив видов по нему находим шаблоны для рендера
@@ -102,8 +114,6 @@ func New(a domain.Apper, zl *zap.Logger, port string, debug bool) *Server {
 	e.Renderer = ss
 	ss.templates = templates.New(ss)
 	ss.Routes()
-	// ss.menu = append(ss.menu, reductor.Home)
-	// ss.menu = append(ss.menu, reductor.Setup)
 	ss.sseManager = sse.New()
 	ss.streamError = ss.sseManager.CreateStream("error")
 	ss.streamInfo = ss.sseManager.CreateStream("info")
@@ -117,12 +127,10 @@ func (s *Server) Start() {
 	}()
 }
 
-// Notify -.
 func (s *Server) Notify() <-chan error {
 	return s.notify
 }
 
-// Shutdown -.
 func (s *Server) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
 	defer cancel()
@@ -153,21 +161,6 @@ func (s *Server) ActivePage() domain.Model {
 	return s.activePage
 }
 
-// устанавливает заголовок окна используется в Render
-// func (s *Server) SetTitlePage(title string) {
-// 	runtime.WindowSetTitle(s.Ctx(), title)
-// }
-
-// используется в меню
-// func (s *Server) ActivePageTitle(title string) string {
-// 	runtime.WindowSetTitle(s.Ctx(), title)
-// 	view, ok := s.views[s.activePage]
-// 	if !ok {
-// 		return "нет такого вида"
-// 	}
-// 	return view.Title()
-// }
-
 func (s *Server) Views() map[domain.Model]views.IView {
 	return s.views
 }
@@ -179,9 +172,6 @@ func (s *Server) Reload() {
 	if s.streamInfo != nil && s.streamInfo.Eventlog != nil {
 		s.streamInfo.Eventlog.Clear()
 	}
-	// if ctx := s.Ctx(); ctx != nil {
-	// 	runtime.WindowReload(ctx)
-	// }
 }
 
 func (s *Server) Htmx() *htmx.HTMX {

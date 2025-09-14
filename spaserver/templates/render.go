@@ -42,7 +42,7 @@ func (t *Templates) RenderDebug(w io.Writer, pageType domain.Model, name string,
 	}
 	tmpl, ok := pages[pageType]
 	if !ok {
-		return fmt.Errorf("template %s not found", name)
+		return fmt.Errorf("template %v not found (name=%s)", pageType, name)
 	}
 
 	return tmpl.ExecuteTemplate(w, name, data)

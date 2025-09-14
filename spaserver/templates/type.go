@@ -31,9 +31,8 @@ func rootPathTemplates() (out string) {
 	}
 	if utility.PathOrFileExists(out) {
 		return out
-	} else {
-		return ""
 	}
+	return ""
 }
 
 type ITemplateUI interface {

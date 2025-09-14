@@ -18,13 +18,6 @@ func (p *ZnakToolsPage) SetSendFunc(f func(domain.Model)) {
 
 // обновляет по модели страницу
 func (p *ZnakToolsPage) Update() {
-	// model, err := p.Model()
-	// if err != nil {
-	// 	p.Logger().Errorf("view:setup update error %v", err)
-	// }
-	// if p.lblDbA3 != nil {
-	// 	p.lblDbA3.SetText(time.Now().String() + "->" + model.Title)
-	// }
 }
 
 func (p *ZnakToolsPage) Clear() {

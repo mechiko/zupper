@@ -1,4 +1,4 @@
-package znak
+package znakpacks
 
 import (
 	"github.com/mechiko/alcogo4lite/entity"

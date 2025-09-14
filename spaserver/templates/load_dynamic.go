@@ -30,7 +30,7 @@ func (t *Templates) DynLoadTemplates() (out map[domain.Model]*template.Template,
 		if page.IsDir() {
 			name, err := domain.ModelFromString(page.Name())
 			if err != nil {
-				return out, fmt.Errorf("%s LoadTemplatesS %w", modError, err)
+				return out, fmt.Errorf("%s DynLoadTemplates %w", modError, err)
 			}
 			if err := t.parsePageDyn(fs, name, out); err != nil {
 				return out, fmt.Errorf("%s %w", modError, err)
@@ -49,8 +49,8 @@ func (t *Templates) parsePageDyn(fs fs.FS, page domain.Model, pages map[domain.M
 	// создаем новый шаблон страницы
 	pages[page] = template.New(page.String()).Funcs(functions)
 	pg := page.String()
-	path := filepath.Join(t.rootPathTemplateGinDebug, pg)
-	embededHtmls, err := os.ReadDir(path)
+	dirPath := filepath.Join(t.rootPathTemplateGinDebug, pg)
+	embededHtmls, err := os.ReadDir(dirPath)
 	if err != nil {
 		return fmt.Errorf("%s %w", modError, err)
 	}
@@ -73,9 +73,9 @@ func (t *Templates) parsePageHtmlDyn(fs fs.FS, page domain.Model, html string, t
 
 	name, _ := strings.CutSuffix(path.Base(html), path.Ext(html))
 	pt := page.String()
-	path := path.Join(pt, html)
+	filePath := path.Join(pt, html)
 
-	file, err := fs.Open(path)
+	file, err := fs.Open(filePath)
 	if err != nil {
 		return fmt.Errorf("%s %w", modError, err)
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/mechiko/walk"
 )
 
-const modError = "gui:view:znak"
+const modError = "gui:view:znakpacks"
 
 type ZnakPage struct {
 	*walk.Composite
@@ -28,13 +28,18 @@ type ZnakPage struct {
 	ipsCombo       *walk.ComboBox
 	groupItogLbl   *walk.Label
 	packageItogLbl *walk.Label
-	fileLbl        *walk.Label
-	filePb         *walk.PushButton
-	filePbA3       *walk.PushButton
-	filePbXml      *walk.PushButton
-	filePb1C       *walk.PushButton
-	filePbCsv      *walk.PushButton
-	waitStateLbl   *walk.Label
+	fileLblCn      *walk.Label
+	fileLblXml     *walk.Label
+	fileLblA3      *walk.Label
+	fileLbl1C      *walk.Label
+	fileLblCsv     *walk.Label
+
+	filePb       *walk.PushButton
+	filePbA3     *walk.PushButton
+	filePbXml    *walk.PushButton
+	filePb1C     *walk.PushButton
+	filePbCsv    *walk.PushButton
+	waitStateLbl *walk.Label
 }
 
 func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp types.Page, err error) {
@@ -49,8 +54,16 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 		parent: parent.Form(),
 		model:  domain.ZnakAgregate,
 	}
-	p.smallFont, _ = walk.NewFont("JetBrains Mono", 9, 0)
-	p.tableFont, _ = walk.NewFont("JetBrains Mono", 10, walk.FontBold)
+	if f, e := walk.NewFont("JetBrains Mono", 9, 0); e == nil {
+		p.smallFont = f
+	} else if p.Logger() != nil {
+		p.Logger().Warnf("%s font small create: %v", modError, e)
+	}
+	if f, e := walk.NewFont("JetBrains Mono", 10, walk.FontBold); e == nil {
+		p.tableFont = f
+	} else if p.Logger() != nil {
+		p.Logger().Warnf("%s font table create: %v", modError, e)
+	}
 
 	var model *znakagregate.ZnakAgregate
 	// инициализируем модель и сохраняем в редукторе

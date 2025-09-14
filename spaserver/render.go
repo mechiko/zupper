@@ -73,20 +73,9 @@ func (s *Server) renderToWriter(w io.Writer, name string, data interface{}) erro
 	model := dataMap["data"]
 	nameType, err := domain.ModelFromString(name)
 	if err != nil {
-		return fmt.Errorf("template name [%s] must be a domain.Model", name)
+		return fmt.Errorf("template name [%s] must be a domain.Model: %w", name, err)
 	}
 
-	// view, ok := s.views[nameType]
-	// if ok {
-	// 	switch nameType {
-	// 	case reductor.Home:
-	// 		s.SetTitlePage(view.Title())
-	// 	case reductor.Setup:
-	// 		s.SetTitlePage(view.Title())
-	// 	}
-	// } else {
-	// 	s.Logger().Errorf("нет такого вида %s", name)
-	// }
 	if s.debug {
 		if err := s.templates.RenderDebug(w, nameType, subName, model); err != nil {
 			s.Logger().Errorf("render debug %s", err.Error())

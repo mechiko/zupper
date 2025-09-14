@@ -31,6 +31,9 @@ func New(info *dbscan.DbInfo, logger *zap.SugaredLogger) (*DbA3, error) {
 	if err := db.Check(); err != nil {
 		return nil, fmt.Errorf("%s error check %v", modError, err)
 	}
+	if db.dbSession == nil {
+		return nil, fmt.Errorf("%s error after check dbsession nil", modError)
+	}
 	return db, nil
 }
 

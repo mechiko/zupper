@@ -70,7 +70,7 @@ func (p *page) Title() string {
 
 // описание вида для меню
 func (p *page) Desc() string {
-	return "настройка чз"
+	return "отчеты нанесения"
 }
 
 func (p *page) ShowInMenu() bool {

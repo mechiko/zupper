@@ -55,5 +55,5 @@ func (t *page) pager(c echo.Context) error {
 	}
 	t.SetActivePage(model)
 	t.Reload()
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }

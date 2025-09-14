@@ -1,4 +1,4 @@
-package znak
+package znakpacks
 
 import (
 	"github.com/mechiko/alcogo4lite/entity"
@@ -46,7 +46,7 @@ func (p *ZnakPage) selectGroupDialog() {
 				Model: model,
 				OnItemActivated: func() {
 					curr := tv.CurrentIndex()
-					if curr <= model.RowCount() {
+					if curr >= 0 && curr < model.RowCount() {
 						mdl := p.Reductor().Model()
 						mdl.Znak.SelectedGroupOrder = model.Item(curr)
 						msg := entity.Message{

@@ -39,8 +39,11 @@ func (m *ProdUtilModel) ReadState(app domain.Apper) (err error) {
 }
 
 func (a *ProdUtilModel) Copy() (interface{}, error) {
-	// shallow copy that`s why fields is simple
 	dst := *a
+	if a.errors != nil {
+		dst.errors = make([]error, len(a.errors))
+		copy(dst.errors, a.errors)
+	}
 	return &dst, nil
 }
 
@@ -53,7 +56,7 @@ func (a *ProdUtilModel) Save(_ domain.Apper) (err error) {
 }
 
 func (a *ProdUtilModel) Errors() []error {
-	out := make([]error, 0, len(a.errors))
+	out := make([]error, len(a.errors))
 	copy(out, a.errors)
 	return out
 }

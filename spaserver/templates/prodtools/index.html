@@ -19,7 +19,7 @@
           ]
       }'
   />
-  <title></title>
+  <title>{{$.Title}}</title>
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png"/>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png"/>
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png"/>
@@ -75,7 +75,7 @@
     // Example taken from: https://www.w3schools.com/html/html5_serversentevents.asp
     // sse подключение и обновление по событиям
     if (typeof (EventSource) !== "undefined") {
-      const source = new EventSource("http://127.0.0.1:8888/sse?stream=error");
+      const source = new EventSource("/sse?stream=error");
       console.log("EventSource(/sse/error)")
       source.onmessage = function (event) {
         console.log("sse error: ", event)
@@ -85,10 +85,10 @@
         });
       };
     } else {
-      document.getElementById("result").innerHTML = "Sorry, your browser does not support server-sent events...";
+      console.warn("SSE unsupported in this browser");
     }
     if (typeof (EventSource) !== "undefined") {
-      const source = new EventSource("http://127.0.0.1:8888/sse?stream=info");
+      const source = new EventSource("/sse?stream=info");
       console.log("EventSource(/sse/info)")
       source.onmessage = function (event) {
         console.log("sse info: ", event)
@@ -98,7 +98,7 @@
         });
       };
     } else {
-      document.getElementById("result").innerHTML = "Sorry, your browser does not support server-sent events...";
+      console.warn("SSE unsupported in this browser");
     }
     document.body.addEventListener("showMessage", function(evt){
       console.log('event ', evt);

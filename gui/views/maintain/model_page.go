@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"zupper/domain/models/application"
 	"zupper/reductor"
-
-	"github.com/mechiko/utility"
 )
 
 // возращаем указатель на модель полученную из редуктора
 func (p *MaintainPage) PageModel() (interface{}, error) {
 	model, err := reductor.Instance().Model(p.model)
 	if err != nil {
-		return nil, fmt.Errorf("view:setup pagemodel %w", err)
+		return nil, fmt.Errorf("view:maintain pagemodel %w", err)
 	}
 	return model, nil
 }
@@ -23,16 +21,15 @@ func (p *MaintainPage) Model() (*application.Application, error) {
 	if reductor.Instance().IsExistModel(p.model) {
 		reductorModel, err := reductor.Instance().Model(p.model)
 		if err != nil {
-			return nil, fmt.Errorf("%w", err)
+			return nil, fmt.Errorf("view:maintain read model: %w", err)
 		}
-		if utility.IsPointer(reductorModel) {
-			mdl, ok := reductorModel.(*application.Application)
-			if ok {
-				return mdl, nil
-			} else {
-				return nil, fmt.Errorf("view:setup Model другой тип в редукторе %T", mdl)
-			}
-		}
+    if mdl, ok := reductorModel.(*application.Application); ok {
+      return mdl, nil
+    }
+    if v, ok := reductorModel.(application.Application); ok {
+      return &v, nil
+    }
+    return nil, fmt.Errorf("view:maintain unexpected model type %T", reductorModel)
 	}
-	return nil, fmt.Errorf("view:setup нет такой модели в редукторе")
+	return nil, fmt.Errorf("view:maintain нет такой модели в редукторе")
 }

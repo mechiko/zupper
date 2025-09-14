@@ -7,5 +7,5 @@ func (t *page) PageData() (interface{}, error) {
 }
 
 func (t *page) InitData() (interface{}, error) {
-	return struct{ Copyright string }{Copyright: "\u00a9 ООО \u00abНЕВАКОД\u00bb"}, nil
+	return t.PageData()
 }

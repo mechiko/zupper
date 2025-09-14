@@ -11,7 +11,7 @@ import (
 	"github.com/mechiko/walk"
 )
 
-const modError = "gui:view:znak"
+const modError = "gui:view:znaktools"
 
 type ZnakToolsPage struct {
 	*walk.Composite
@@ -41,7 +41,7 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 	// func NewPage(parent walk.Container, app domain.Apper) (pp types.Page, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("%s NewPage ZnakPage panic %v", modError, r)
+			err = fmt.Errorf("%s NewPage ZnakPageTools panic %v", modError, r)
 		}
 	}()
 	p := &ZnakToolsPage{
@@ -62,14 +62,14 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 		}
 	} else {
 		if model, err = znakagregate.New(p.Apper, repo); err != nil {
-			return nil, fmt.Errorf("view:znak ошибка создания модели %s %v", p.model, err)
+			return nil, fmt.Errorf("view:znaktools ошибка создания модели %s %v", p.model, err)
 		}
 		if err := reductor.Instance().SetModel(model, false); err != nil {
-			return nil, fmt.Errorf("view:znak ошибка записи модели в редуктор %s %v", p.model, err)
+			return nil, fmt.Errorf("view:znaktools ошибка записи модели в редуктор %s %v", p.model, err)
 		}
 	}
 	if err = p.dclCreate(parent, model); err != nil {
-		return nil, fmt.Errorf("page znak dcl create %w", err)
+		return nil, fmt.Errorf("page znaktools dcl create %w", err)
 	}
 	return p, nil
 }

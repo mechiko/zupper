@@ -7,7 +7,6 @@ import (
 )
 
 func (t *page) Routes() error {
-	// Serve static and media files under /static/ and /uploads/ path.
 	t.Echo().GET("/footer", t.Index)
 	return nil
 }

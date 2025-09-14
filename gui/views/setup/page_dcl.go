@@ -12,6 +12,12 @@ import (
 )
 
 func (p *SetupPage) dclCreate(parent walk.Container, model *application.Application) error {
+	defer func() {
+		if r := recover(); r != nil {
+			p.Logger().Errorf("setup page panic: %v", r)
+		}
+	}()
+
 	if err := (dcl.Composite{
 		AssignTo: &p.Composite,
 		Name:     model.Title,
@@ -37,76 +43,43 @@ func (p *SetupPage) dclCreate(parent walk.Container, model *application.Applicat
 						// Background:            dcl.SolidColorBrush{Color: walk.RGB(0x34, 0x82, 0xeb)},
 						Editable: false,
 						Value:    model.Browser,
-						Model:    []string{string(utility.Default), string(utility.Chrome), string(utility.Firefox), string(utility.Yandex), string(utility.Edge)},
+						Model:    model.BrowserList,
 						OnCurrentIndexChanged: func() {
+							// Prevent UI crash if reductor.Instance() panics.
+							defer func() {
+								if r := recover(); r != nil {
+									p.Logger().Errorf("reductor.Instance panic: %v", r)
+								}
+							}()
+
 							p.Logger().Debug("browser current index change")
 							txt := p.browserCB.Text()
-							modelChange, _ := p.Model()
+
+							modelChange, err := p.Model()
+							if err != nil {
+								p.Logger().Errorf("get model error: %v", err)
+								return
+							}
 							modelChange.Browser = utility.Browser(txt)
-							err := modelChange.SyncToStore(p)
-							if err != nil {
-								p.Logger().Errorf("change browser set in store error %s", err.Error())
+
+							if err = modelChange.SyncToStore(p); err != nil {
+								p.Logger().Errorf("sync browser to store error: %v", err)
+								return
 							}
-							err = modelChange.Save(p)
-							if err != nil {
-								p.Logger().Errorf("change browser set in store error %s", err.Error())
+							if err = modelChange.Save(p); err != nil {
+								p.Logger().Errorf("save model error: %v", err)
+								return
 							}
-							err = reductor.Instance().SetModel(modelChange, false)
-							if err != nil {
-								p.Logger().Errorf("change browser set in reductor error %s", err.Error())
+							if err = reductor.Instance().SetModel(modelChange, false); err != nil {
+								p.Logger().Errorf("set model in reductor error: %v", err)
+								return
 							}
 						},
 					},
-					// 		dcl.HSpacer{Size: 20},
-					// 		dcl.PushButton{
-					// 			Text: "Открыть Веб Приложение",
-					// 			OnClicked: func() {
-					// 				// uri := path.Join(p.BaseUrl(), "/v1/home")
-					// 				// p.Open(uri)
-					// 			},
-					// 		},
-					// 		dcl.HSpacer{},
 				},
 			},
-			// dcl.GroupBox{
-			// 	Title:  "УТМ",
-			// 	Layout: dcl.VBox{MarginsZero: false, SpacingZero: false, Margins: dcl.Margins{Left: 5, Top: 5, Right: 5, Bottom: 5}},
-			// 	Children: []dcl.Widget{
-			// 		dcl.Composite{
-			// 			Layout:    dcl.HBox{MarginsZero: true, SpacingZero: false, Margins: dcl.Margins{Left: 0, Top: 0, Right: 0, Bottom: 0}},
-			// 			Border:    false,
-			// 			Alignment: dcl.Alignment2D(walk.AlignHNearVNear),
-			// 			Children: []dcl.Widget{
-			// 				dcl.Label{
-			// 					Text: "Хост:",
-			// 				},
-			// 				dcl.LineEdit{
-			// 					AssignTo: &p.utmhost,
-			// 					MaxSize:  dcl.Size{Width: 200},
-			// 					Text:     model.Host,
-			// 				},
-			// 				dcl.HSpacer{},
-			// 			},
-			// 		},
-			// 		dcl.Composite{
-			// 			Layout:    dcl.HBox{MarginsZero: true, SpacingZero: false, Margins: dcl.Margins{Left: 0, Top: 0, Right: 0, Bottom: 0}},
-			// 			Border:    false,
-			// 			Alignment: dcl.Alignment2D(walk.AlignHNearVNear),
-			// 			Children: []dcl.Widget{
-			// 				dcl.Label{
-			// 					Text: "Порт:",
-			// 				},
-			// 				dcl.LineEdit{
-			// 					AssignTo: &p.utmport,
-			// 					MaxSize:  dcl.Size{Width: 200},
-			// 					Text:     model.Port,
-			// 				},
-			// 				dcl.HSpacer{},
-			// 			},
-			// 		},
-			// 	}},
 			dcl.GroupBox{
-				Title:  "Конфигураци БД",
+				Title:  "Конфигурация БД",
 				Layout: dcl.VBox{MarginsZero: false, SpacingZero: false, Margins: dcl.Margins{Left: 10, Top: 10, Right: 10, Bottom: 10}},
 				Children: []dcl.Widget{
 					dcl.Composite{
@@ -174,22 +147,15 @@ func (p *SetupPage) dclCreate(parent walk.Container, model *application.Applicat
 				Border: false,
 				Layout: dcl.VBox{MarginsZero: true, SpacingZero: true, Margins: dcl.Margins{Left: 5, Top: 5, Right: 5, Bottom: 0}},
 				Children: []dcl.Widget{
-					// dcl.PushButton{
-					// 	AssignTo: &p.saveconf,
-					// 	// ColumnSpan: 2,
-					// 	Text: "Обновить конфигурацию",
-					// 	// OnClicked: p.saveConfig,
-					// 	OnClicked: func() {
-					// 		// отправляем обновление своей модели в канал
-					// 		if p.sendChan != nil {
-					// 			p.sendChan(p.model)
-					// 		}
-					// 	},
-					// },
 					dcl.PushButton{
 						Text: "Открыть папку выгрузки",
 						OnClicked: func() {
-							if err := utility.OpenFileInShell(p.Options().Output); err != nil {
+							out := p.Options().Output
+							if out == "" {
+								utility.MessageBox("ошибка", "путь выгрузки не настроен")
+								return
+							}
+							if err := utility.OpenFileInShell(out); err != nil {
 								utility.MessageBox("ошибка", err.Error())
 							}
 						},
@@ -197,7 +163,12 @@ func (p *SetupPage) dclCreate(parent walk.Container, model *application.Applicat
 					dcl.PushButton{
 						Text: "Открыть папку настройки и логов",
 						OnClicked: func() {
-							if err := utility.OpenFileInShell(p.ConfigPath()); err != nil {
+							cfg := p.ConfigPath()
+							if cfg == "" {
+								utility.MessageBox("ошибка", "путь к настройкам/логам не настроен")
+								return
+							}
+							if err := utility.OpenFileInShell(cfg); err != nil {
 								utility.MessageBox("ошибка", err.Error())
 							}
 						},
