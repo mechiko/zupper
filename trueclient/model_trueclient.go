@@ -46,7 +46,12 @@ func (m *TrueClientModel) Sync(cfg domain.Apper) {
 	cfg.SetOptions("trueclient.hashkey", m.HashKey)
 	cfg.SetOptions("trueclient.omsid", m.OmsID)
 	cfg.SetOptions("trueclient.useconfigdb", m.UseConfigDB)
+	m.Save(cfg)
+}
+
+func (m *TrueClientModel) Save(cfg domain.Apper) error {
 	cfg.SaveOptions()
+	return nil
 }
 
 // когда считываем конфиг сбрасываем токены и время авторизации

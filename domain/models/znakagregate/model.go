@@ -56,3 +56,7 @@ func (a *ZnakAgregate) Copy() (interface{}, error) {
 func (a *ZnakAgregate) Model() domain.Model {
 	return a.model
 }
+
+func (a *ZnakAgregate) Save(_ domain.Apper) (err error) {
+	return nil
+}

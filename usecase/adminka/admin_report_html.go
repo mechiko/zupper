@@ -53,5 +53,5 @@ func (a *adminka) StatusDbClear(c echo.Context) error {
 	if err != nil {
 		return a.ServerError(c, fmt.Errorf("%s %w", modError, err))
 	}
-	return c.String(http.StatusOK, "OK")
+	return c.JSON(http.StatusOK, echo.Map{})
 }

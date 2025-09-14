@@ -5,6 +5,7 @@ var TomlConfig = []byte(`
 hostname = "127.0.0.1"
 hostport = "8888"
 output = "output"
+browser = ""
 
 [layouts]
 timelayout = "2006-01-02T15:04:05-0700"
@@ -29,17 +30,20 @@ hashkey = ''
 omsid = ''
 useconfigdb = true
 
-[config]
+[[dbs]]
+name = 'config'
 dbname = ''
 driver = 'sqlite'
 file = ''
 
-[trueznak]
+[[dbs]]
+name = 'az'
 dbname = ''
 driver = 'sqlite'
 file = ''
 
-[alcohelp3]
+[[dbs]]
+name = 'a3'
 dbname = ''
 driver = 'sqlite'
 file = ''
@@ -47,64 +51,66 @@ file = ''
 `)
 
 type Configuration struct {
-	Hostname string `json:"hostname"`
-	HostPort string `json:"hostport"`
-	Output   string
-	Export   string
-	Browser  string `json:"browser"`
+	Hostname string `mapstructure:"hostname"`
+	HostPort string `mapstructure:"hostport"`
+	Output   string `mapstructure:"output"`
+	Export   string `mapstructure:"export"`
+	Browser  string `mapstructure:"browser"`
 
-	Application AppConfiguration    `json:"application"`
-	Layouts     LayoutConfiguration `json:"layouts"`
+	Application AppConfiguration    `mapstructure:"application"`
+	Layouts     LayoutConfiguration `mapstructure:"layouts"`
 	// описатели БД рефактор
-	Config    DatabaseConfiguration `json:"config"`
-	AlcoHelp3 DatabaseConfiguration `json:"alcohelp3"`
-	TrueZnak  DatabaseConfiguration `json:"trueznak"`
-	SelfDB    DatabaseConfiguration `json:"selfdb"`
+	Dbs []DatabaseConfiguration `mapstructure:"dbs"`
+	// Config    DatabaseConfiguration `mapstructure:"config"`
+	// AlcoHelp3 DatabaseConfiguration `mapstructure:"alcohelp3"`
+	// TrueZnak  DatabaseConfiguration `mapstructure:"trueznak"`
+	// SelfDB    DatabaseConfiguration `mapstructure:"selfdb"`
 	// описание клиента ЧЗ
-	TrueClient TrueClientConfig `json:"trueclient"`
+	TrueClient TrueClientConfig `mapstructure:"trueclient"`
 }
 
 type LayoutConfiguration struct {
-	TimeLayout      string `json:"timelayout"`
-	TimeLayoutClear string `json:"timelayoutclear"`
-	TimeLayoutDay   string `json:"timelayoutday"`
-	TimeLayoutUTC   string `json:"timelayoututc"`
+	TimeLayout      string `mapstructure:"timelayout"`
+	TimeLayoutClear string `mapstructure:"timelayoutclear"`
+	TimeLayoutDay   string `mapstructure:"timelayoutday"`
+	TimeLayoutUTC   string `mapstructure:"timelayoututc"`
 }
 
 type DatabaseConfiguration struct {
-	Connection string `json:"connection"`
-	Driver     string `json:"driver"`
-	DbName     string `json:"dbname"`
-	File       string `json:"file"`
-	User       string `json:"user"`
-	Pass       string `json:"pass"`
-	Host       string `json:"host"`
-	Port       string `json:"port"`
+	Name       string `mapstructure:"name"`
+	Connection string `mapstructure:"connection"`
+	Driver     string `mapstructure:"driver"`
+	DbName     string `mapstructure:"dbname"`
+	File       string `mapstructure:"file"`
+	User       string `mapstructure:"user"`
+	Pass       string `mapstructure:"pass"`
+	Host       string `mapstructure:"host"`
+	Port       string `mapstructure:"port"`
 }
 
 type AppConfiguration struct {
-	// Pwd          string `json:"pwd"`
-	// Console      bool   `json:"console"`
-	// Disconnected bool   `json:"disconnected"`
-	Fsrarid string `json:"fsrarid"`
-	// DbType       string `json:"dbtype"`
-	License string `json:"license"`
-	// ScanTimer    int    `json:"scantimer"`
-	StartPage string `json:"startpage"`
+	// Pwd          string `mapstructure:"pwd"`
+	// Console      bool   `mapstructure:"console"`
+	// Disconnected bool   `mapstructure:"disconnected"`
+	Fsrarid string `mapstructure:"fsrarid"`
+	// DbType       string `mapstructure:"dbtype"`
+	License string `mapstructure:"license"`
+	// ScanTimer    int    `mapstructure:"scantimer"`
+	StartPage string `mapstructure:"startpage"`
 }
 
 type TrueClientConfig struct {
-	Test        bool   `json:"test"`
-	StandGIS    string `json:"standgis"`
-	StandSUZ    string `json:"standsuz"`
-	TestGIS     string `json:"testgis"`
-	TestSUZ     string `json:"testsuz"`
-	TokenGIS    string `json:"tokengis"`
-	TokenSUZ    string `json:"tokensuz"`
-	AuthTime    string `json:"authtime"`
-	LayoutUTC   string `json:"layoututc"`
-	HashKey     string `json:"hashkey"`
-	DeviceID    string `json:"deviceid"`
-	OmsID       string `json:"omsid"`
-	UseConfigDB bool   `json:"useconfigdb"`
+	Test        bool   `mapstructure:"test"`
+	StandGIS    string `mapstructure:"standgis"`
+	StandSUZ    string `mapstructure:"standsuz"`
+	TestGIS     string `mapstructure:"testgis"`
+	TestSUZ     string `mapstructure:"testsuz"`
+	TokenGIS    string `mapstructure:"tokengis"`
+	TokenSUZ    string `mapstructure:"tokensuz"`
+	AuthTime    string `mapstructure:"authtime"`
+	LayoutUTC   string `mapstructure:"layoututc"`
+	HashKey     string `mapstructure:"hashkey"`
+	DeviceID    string `mapstructure:"deviceid"`
+	OmsID       string `mapstructure:"omsid"`
+	UseConfigDB bool   `mapstructure:"useconfigdb"`
 }

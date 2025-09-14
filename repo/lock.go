@@ -35,7 +35,7 @@ func (r *Repository) Lock(t dbscan.DbInfoType) (domain.RepoDB, error) {
 		}
 		return db, nil
 	case dbscan.A3:
-		db, err := a3.New(info)
+		db, err := a3.New(info, r.logger)
 		if err != nil {
 			mu.mutex.Unlock()
 			return nil, fmt.Errorf("repo lock open %v error %w", t, err)

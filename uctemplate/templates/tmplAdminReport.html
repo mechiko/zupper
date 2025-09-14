@@ -161,9 +161,11 @@
     {{end}}
   </div>
 
-  <div class="m-5" style="width: 200px;">
+{{if $.AbsentForm1}}
+  <div class="m-5">
+      <details>
+        <summary>Отсутствуют справки 1 в кол-ве {{len $.AbsentForm1}}</summary>
       <table class="print-form border border-collapse" rules="all">
-      <caption><div class="">Отсутствуют справки 1</div></caption>
       <col style="width:20%">
       <thead>
         <tr class="text-base">
@@ -178,28 +180,36 @@
 {{end}}
      </tbody>
      </table>
+      </details>
     </div>    
-<div class="m-5" style="width: 200px;">
-      <table class="print-form border border-collapse" rules="all">
-      <caption><div class="">Отсутствуют справки 2</div></caption>
-      <col style="width:20%">
-      <thead>
-        <tr class="text-base">
-          <th class="text-center">Идентификатор</th>
-        </tr>
-      </thead>
-      <tbody class="text-base" style="text-align:center;">
-{{range $j, $row := $.AbsentForm2}}
-      <tr class="text-base">
-        <td class="p-2 text-left">{{$row.Id}}</td>
-      </tr>
 {{end}}
-     </tbody>
-     </table>
-    </div>    
-  <div class="m-5 py-5" style="width: 200px;">
+{{if $.AbsentForm2}}
+  <div class="m-5">
+      <details>
+        <summary>Отсутствуют справки 2 в кол-ве {{len $.AbsentForm2}}</summary>
+        <table class="print-form border border-collapse" rules="all">
+            <col style="width:20%">
+            <thead>
+              <tr class="text-base">
+                <th class="text-center">Идентификатор</th>
+              </tr>
+            </thead>
+            <tbody class="text-base" style="text-align:center;">
+      {{range $j, $row := $.AbsentForm2}}
+            <tr class="text-base">
+              <td class="p-2 text-left">{{$row.Id}}</td>
+            </tr>
+      {{end}}
+          </tbody>
+          </table>
+      </details>
+  </div>    
+{{end}}
+{{if $.AbsentClient}}
+  <div class="m-5 py-5">
+      <details>
+        <summary>Отсутствуют клиенты в кол-ве {{len $.AbsentClient}}</summary>
       <table class="print-form border border-collapse" rules="all">
-      <caption><div class="">Отсутствуют клиенты</div></caption>
       <col style="width:20%">
       <thead>
         <tr class="text-base">
@@ -214,23 +224,28 @@
 {{end}}
     </tbody>
      </table>
+      </details>
     </div>    
+{{end}}
 <br>
 
 <script>
   function clearreport() {
     console.log("start clear");
-    fetch('/maintain/statusdbclear')
+    fetch('/maintain/statusdbclear', { method: 'POST', headers: { 'Accept': 'application/json' } })
       .then((response) => {
         // Проверяем успешность запроса и выкидываем ошибку
         if (!response.ok) {
           throw new Error('Error occurred!')
         }
-        console.log(response.json())
-        console.log("finish clear")
-        document.location.reload()
+        return response.json;
       })
-      // Теперь попадём сюда, так как выбросили ошибку
+      .then((_data) => {
+        console.log("finish clear responce");
+        console.log(_data);
+        document.location.reload();
+      })
+      // Ошибки запроса
       .catch((err) => {
         console.log(err)
       }

@@ -44,7 +44,7 @@ func New(a domain.Apper) (s *trueClient) {
 	// здесь мы уже получаем ее существующую
 	reductorModel, err := reductor.Instance().Model(domain.TrueClient)
 	if err != nil {
-		strErr := fmt.Sprintf("reductor trueclient error %w", err)
+		strErr := fmt.Errorf("reductor trueclient error %w", err)
 		a.Logger().Error(strErr)
 		panic(strErr)
 	}

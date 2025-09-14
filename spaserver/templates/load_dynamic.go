@@ -9,7 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"zupper/reductor"
+	"zupper/domain"
 )
 
 // debug
@@ -18,8 +18,8 @@ import (
 //
 // все пути и включения отображаются из embeded структуры файлов, по ним строится t.pages[page]
 // состоящая из дерева шаблонов для каждой страницы (независимых)
-func (t *Templates) DynLoadTemplates() (out map[reductor.ModelType]*template.Template, err error) {
-	out = make(map[reductor.ModelType]*template.Template)
+func (t *Templates) DynLoadTemplates() (out map[domain.Model]*template.Template, err error) {
+	out = make(map[domain.Model]*template.Template)
 	fs := os.DirFS(t.rootPathTemplateGinDebug)
 	embededPages, err := os.ReadDir(t.rootPathTemplateGinDebug)
 	if err != nil {
@@ -28,7 +28,10 @@ func (t *Templates) DynLoadTemplates() (out map[reductor.ModelType]*template.Tem
 	for _, page := range embededPages {
 		// t.Logger().Debugf("page %d %s %v", i, page.Name(), page.IsDir())
 		if page.IsDir() {
-			name := reductor.ModelTypeFromString(page.Name())
+			name, err := domain.ModelFromString(page.Name())
+			if err != nil {
+				return out, fmt.Errorf("%s LoadTemplatesS %w", modError, err)
+			}
 			if err := t.parsePageDyn(fs, name, out); err != nil {
 				return out, fmt.Errorf("%s %w", modError, err)
 			}
@@ -37,7 +40,7 @@ func (t *Templates) DynLoadTemplates() (out map[reductor.ModelType]*template.Tem
 	return out, nil
 }
 
-func (t *Templates) parsePageDyn(fs fs.FS, page reductor.ModelType, pages map[reductor.ModelType]*template.Template) (err error) {
+func (t *Templates) parsePageDyn(fs fs.FS, page domain.Model, pages map[domain.Model]*template.Template) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic %v", r)
@@ -61,7 +64,7 @@ func (t *Templates) parsePageDyn(fs fs.FS, page reductor.ModelType, pages map[re
 	return nil
 }
 
-func (t *Templates) parsePageHtmlDyn(fs fs.FS, page reductor.ModelType, html string, templ *template.Template) (err error) {
+func (t *Templates) parsePageHtmlDyn(fs fs.FS, page domain.Model, html string, templ *template.Template) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic %v", r)

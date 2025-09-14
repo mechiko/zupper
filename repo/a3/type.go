@@ -18,8 +18,9 @@ type DbA3 struct {
 	version   int64
 }
 
-func New(info *dbscan.DbInfo) (*DbA3, error) {
+func New(info *dbscan.DbInfo, logger *zap.SugaredLogger) (*DbA3, error) {
 	db := &DbA3{
+		logger:   logger,
 		dbInfo:   info,
 		infoType: dbscan.A3,
 	}

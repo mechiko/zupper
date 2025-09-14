@@ -50,3 +50,7 @@ func (a *StatusBar) Copy() (interface{}, error) {
 func (a *StatusBar) Model() domain.Model {
 	return a.model
 }
+
+func (a *StatusBar) Save(_ domain.Apper) (err error) {
+	return nil
+}

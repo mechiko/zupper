@@ -4,5 +4,5 @@ import (
 	"embed"
 )
 
-//go:embed index
+//go:embed footer header index prodtools
 var root embed.FS

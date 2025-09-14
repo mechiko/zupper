@@ -1,4 +1,4 @@
-package znak
+package znakpacks
 
 var itemPerPage = []string{
 	"",

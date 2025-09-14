@@ -12,15 +12,17 @@ import (
 	"zupper/gui/views/maintain"
 	"zupper/gui/views/reports"
 	"zupper/gui/views/setup"
-	"zupper/gui/views/znak"
+	"zupper/gui/views/znaktools"
+
+	// "zupper/gui/views/znakpacks"
 	"zupper/repo"
 
 	"github.com/mechiko/dbscan"
 )
 
 var pages = map[string]types.PageConfig{
-	"Setup": {Title: "Настройки", Image: "104", NewPage: setup.New, Class: "setup"},
-	"Znak":  {Title: "Коробки", Image: "PngKfh", NewPage: znak.New, Class: "znak"},
+	"Setup":     {Title: "Настройки", Image: "104", NewPage: setup.New, Class: "setup"},
+	"ZnakTools": {Title: "Инструменты", Image: "PngKfh", NewPage: znaktools.New, Class: "znaktools"},
 	// "ImportTTN":     {Title: "Импорт ТТН", Image: "PngRequester", NewPage: importvoot.NewPage, Class: "importttn"},
 	// "ImportTTNUtsz": {Title: "Импорт ТТН", Image: "PngRequester", NewPage: importutsz.NewPage, Class: "importttnutsz"},
 	"Reports": {Title: "Отчеты", Image: "104", NewPage: reports.New, Class: "reports"},
@@ -40,7 +42,7 @@ func CreateTreeMenu(app domain.Apper, repo *repo.Repository) *types.AppmenuTreeM
 
 	if repo.Is(dbscan.TrueZnak) {
 		menu20 := tvm.NewRootMenu("ЧЗ", nil, "103")
-		page21 := pages["Znak"]
+		page21 := pages["ZnakTools"]
 		trueZnakMenu = menu20.AddChild(app, page21, page21.NewPage, imageMenu(app, page21.Image))
 		tvm.Menu2NewPage[trueZnakMenu] = page21.NewPage
 	}

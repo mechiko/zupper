@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"zupper/reductor"
+	"zupper/domain"
 
 	"github.com/labstack/echo/v4"
 )
@@ -71,7 +71,11 @@ func (s *Server) renderToWriter(w io.Writer, name string, data interface{}) erro
 		return fmt.Errorf("template value must be a string")
 	}
 	model := dataMap["data"]
-	nameType := reductor.ModelTypeFromString(name)
+	nameType, err := domain.ModelFromString(name)
+	if err != nil {
+		return fmt.Errorf("template name [%s] must be a domain.Model", name)
+	}
+
 	// view, ok := s.views[nameType]
 	// if ok {
 	// 	switch nameType {

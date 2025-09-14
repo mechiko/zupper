@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -224,12 +225,15 @@ func (a *app) LogPath() string {
 
 func (a *app) BaseUrl() string {
 	host := a.options.Hostname
-	port := a.options.HostPort
 	if host == "" {
 		host = "127.0.0.1"
 	}
-	uri := fmt.Sprintf("%s:%s", host, port)
-	return uri
+	port := a.options.HostPort
+	u := &url.URL{
+		Scheme: "http",
+		Host:   fmt.Sprintf("%s:%s", host, port), // Host and port combined
+	}
+	return u.String()
 }
 
 func (a *app) DbSelfPath() string {

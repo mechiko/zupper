@@ -21,6 +21,7 @@ type MaintainPage struct {
 	parent   walk.Form
 	start    *walk.DateEdit
 	end      *walk.DateEdit
+	model    domain.Model
 }
 
 // func NewPage(parent walk.Container, app types.IApp) (pp types.Page, err error) {
@@ -33,6 +34,12 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 	p := &MaintainPage{
 		Apper:  app,
 		parent: parent.Form(),
+		model:  domain.Application,
+	}
+
+	model, err := p.Model()
+	if err != nil {
+		app.Logger().Errorf("%s get application model %s", modError, err.Error())
 	}
 
 	if err := (dcl.Composite{
@@ -82,7 +89,7 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 								OnClicked: func() {
 									base := p.BaseUrl()
 									uri := path.Join(base, "/maintain/statusdb")
-									if err := utility.OpenHttpLinkInShell(uri); err != nil {
+									if err := utility.OpenHttpBrowser(uri, model.Browser); err != nil {
 										p.Logger().Errorf("open uri error %w", err)
 									}
 								},

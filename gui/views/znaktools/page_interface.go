@@ -1,4 +1,4 @@
-package znak
+package znaktools
 
 import (
 	"zupper/domain"
@@ -12,12 +12,12 @@ import (
 //	if p.sendChan != nil {
 //		p.sendChan(p.model)
 //	}
-func (p *ZnakPage) SetSendFunc(f func(domain.Model)) {
+func (p *ZnakToolsPage) SetSendFunc(f func(domain.Model)) {
 	p.sendChan = f
 }
 
 // обновляет по модели страницу
-func (p *ZnakPage) Update() {
+func (p *ZnakToolsPage) Update() {
 	// model, err := p.Model()
 	// if err != nil {
 	// 	p.Logger().Errorf("view:setup update error %v", err)
@@ -27,5 +27,5 @@ func (p *ZnakPage) Update() {
 	// }
 }
 
-func (p *ZnakPage) Clear() {
+func (p *ZnakToolsPage) Clear() {
 }

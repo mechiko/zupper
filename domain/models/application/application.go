@@ -7,13 +7,14 @@ import (
 	"zupper/domain"
 
 	"github.com/mechiko/dbscan"
+	"github.com/mechiko/utility"
 )
 
 type Application struct {
 	model        domain.Model
 	Title        string
 	Export       string
-	Browser      string
+	Browser      utility.Browser
 	BrowserList  []string
 	Output       string
 	Debug        bool
@@ -47,14 +48,14 @@ func New(app domain.Apper, repo domain.Repo) (*Application, error) {
 // синхронизирует с приложением в сторону приложения из модели редуктора
 func (m *Application) SyncToStore(app domain.Apper) (err error) {
 	app.SetOptions("export", m.Export)
-	// ...
+	app.SetOptions("browser", m.Browser)
 	return err
 }
 
 // читаем состояние приложения
 func (m *Application) ReadState(app domain.Apper, repo domain.Repo) (err error) {
 	m.Export = app.Options().Export
-	m.Browser = app.Options().Browser
+	m.Browser = utility.Browser(app.Options().Browser)
 	m.Output = app.Options().Output
 	m.Host = app.Options().Hostname
 	m.Port = app.Options().HostPort
@@ -90,4 +91,9 @@ func (a *Application) Copy() (interface{}, error) {
 
 func (a *Application) Model() domain.Model {
 	return a.model
+}
+
+func (m *Application) Save(app domain.Apper) (err error) {
+	app.SaveOptions()
+	return err
 }

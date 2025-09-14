@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 	"zupper/domain"
-	"zupper/reductor"
+	"zupper/embedded"
 	"zupper/repo"
 	"zupper/spaserver/sse"
 	"zupper/spaserver/templates"
@@ -41,9 +41,9 @@ type Server struct {
 	debug           bool
 	private         *echo.Group
 	templates       *templates.Templates
-	views           map[reductor.ModelType]views.IView
-	menu            []reductor.ModelType
-	activePage      reductor.ModelType
+	views           map[domain.Model]views.IView
+	menu            []domain.Model
+	activePage      domain.Model
 	defaultPage     string
 	flush           *FlushMsg
 	flushMu         sync.RWMutex
@@ -76,11 +76,11 @@ func New(a domain.Apper, zl *zap.Logger, port string, debug bool) *Server {
 		AllowCredentials: true,
 		AllowMethods:     []string{echo.OPTIONS, echo.GET, echo.HEAD, echo.PUT, echo.PATCH, echo.POST, echo.DELETE},
 	}))
-	// e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-	// 	HTML5:      true,
-	// 	Root:       "root", // because files are located in `root` directory
-	// 	Filesystem: http.FS(embeded.Root),
-	// }))
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		HTML5:      true,
+		Root:       "root", // because files are located in `root` directory
+		Filesystem: http.FS(embedded.Root),
+	}))
 	// наследует родительские middleware
 	private := e.Group("/admin")
 	ss := &Server{
@@ -92,18 +92,18 @@ func New(a domain.Apper, zl *zap.Logger, port string, debug bool) *Server {
 		private:         private,
 		debug:           debug,
 		sessionManager:  sess,
-		views:           make(map[reductor.ModelType]views.IView), // массив видов по нему находим шаблоны для рендера
-		menu:            make([]reductor.ModelType, 0),
+		views:           make(map[domain.Model]views.IView), // массив видов по нему находим шаблоны для рендера
+		menu:            make([]domain.Model, 0),
 		defaultPage:     "",
-		activePage:      reductor.Home,
+		activePage:      domain.NoPage,
 		htmx:            htmx.New(),
 	}
 
 	e.Renderer = ss
 	ss.templates = templates.New(ss)
 	ss.Routes()
-	ss.menu = append(ss.menu, reductor.Home)
-	ss.menu = append(ss.menu, reductor.Setup)
+	// ss.menu = append(ss.menu, reductor.Home)
+	// ss.menu = append(ss.menu, reductor.Setup)
 	ss.sseManager = sse.New()
 	ss.streamError = ss.sseManager.CreateStream("error")
 	ss.streamInfo = ss.sseManager.CreateStream("info")
@@ -145,11 +145,11 @@ func (s *Server) Echo() *echo.Echo {
 	return s.server
 }
 
-func (s *Server) SetActivePage(p reductor.ModelType) {
+func (s *Server) SetActivePage(p domain.Model) {
 	s.activePage = p
 }
 
-func (s *Server) ActivePage() reductor.ModelType {
+func (s *Server) ActivePage() domain.Model {
 	return s.activePage
 }
 
@@ -168,7 +168,7 @@ func (s *Server) ActivePage() reductor.ModelType {
 // 	return view.Title()
 // }
 
-func (s *Server) Views() map[reductor.ModelType]views.IView {
+func (s *Server) Views() map[domain.Model]views.IView {
 	return s.views
 }
 
@@ -188,7 +188,7 @@ func (s *Server) Htmx() *htmx.HTMX {
 	return s.htmx
 }
 
-func (s *Server) Menu() []reductor.ModelType {
+func (s *Server) Menu() []domain.Model {
 	return s.menu
 }
 
