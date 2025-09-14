@@ -19,17 +19,20 @@ type DbA3 struct {
 }
 
 func New(info *dbscan.DbInfo, logger *zap.SugaredLogger) (*DbA3, error) {
+	if info == nil {
+		return nil, fmt.Errorf("%s dbinfo is nil", modError)
+	}
+	if logger == nil {
+		logger = zap.NewNop().Sugar()
+	}
 	db := &DbA3{
 		logger:   logger,
 		dbInfo:   info,
 		infoType: dbscan.A3,
 	}
-	if info == nil {
-		return nil, fmt.Errorf("%s dbinfo is nil", modError)
-	}
 	// открываем сесиию в этом методе если нет ошибки
 	if err := db.Check(); err != nil {
-		return nil, fmt.Errorf("%s error check %v", modError, err)
+		return nil, fmt.Errorf("%s error check %w", modError, err)
 	}
 	if db.dbSession == nil {
 		return nil, fmt.Errorf("%s error after check dbsession nil", modError)
@@ -41,7 +44,9 @@ func (c *DbA3) Close() (err error) {
 	if c.dbSession == nil {
 		return nil
 	}
-	return c.dbSession.Close()
+	err = c.dbSession.Close()
+	c.dbSession = nil
+	return err
 }
 
 func (c *DbA3) Sess() db.Session {

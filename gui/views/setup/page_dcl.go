@@ -47,14 +47,19 @@ func (p *SetupPage) dclCreate(parent walk.Container, model *application.Applicat
 						OnCurrentIndexChanged: func() {
 							p.Logger().Debug("browser current index change")
 							txt := p.browserCB.Text()
-
+							if txt == "" {
+								return
+							}
 							modelChange, err := p.Model()
 							if err != nil {
 								p.Logger().Errorf("get model error: %v", err)
 								return
 							}
-							modelChange.Browser = utility.Browser(txt)
-
+							newVal := utility.Browser(txt)
+							if modelChange.Browser == newVal {
+								return
+							}
+							modelChange.Browser = newVal
 							if err = modelChange.SyncToStore(p); err != nil {
 								p.Logger().Errorf("sync browser to store error: %v", err)
 								return

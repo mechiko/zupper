@@ -29,7 +29,7 @@ func New(info *dbscan.DbInfo) (*DbConfig, error) {
 	}
 	// открываем сесиию в этом методе если нет ошибки
 	if err := db.Check(); err != nil {
-		return nil, fmt.Errorf("%s error check %v", modError, err)
+		return nil, fmt.Errorf("%s check failed: %w", modError, err)
 	}
 	if db.dbSession == nil {
 		return nil, fmt.Errorf("%s error after check dbsession nil", modError)
@@ -41,7 +41,9 @@ func (c *DbConfig) Close() error {
 	if c.dbSession == nil {
 		return nil
 	}
-	return c.dbSession.Close()
+	err := c.dbSession.Close()
+	c.dbSession = nil
+	return err
 }
 
 func (c *DbConfig) Sess() db.Session {

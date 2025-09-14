@@ -52,9 +52,9 @@ func New(a domain.Apper) (s *trueClient) {
 	// здесь мы уже получаем ее существующую
 	reductorModel, err := reductor.Instance().Model(domain.TrueClient)
 	if err != nil {
-		errType := fmt.Errorf("%s: reductor model trueclient wrong type %T", modError, reductorModel)
-		a.Logger().Errorw("reductor model mismatch", "expected", "*TrueClientModel", "actual", fmt.Sprintf("%T", reductorModel), "err", errType)
-		panic(errType)
+		errWrap := fmt.Errorf("%s: reductor model retrieval failed: %w", modError, err)
+		a.Logger().Errorw("reductor model retrieval failed", "model", "trueclient", "err", errWrap)
+		panic(errWrap)
 	}
 	model, ok := reductorModel.(*TrueClientModel)
 	if !ok {

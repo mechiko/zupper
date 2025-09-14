@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"path"
 	"strings"
 	"zupper/domain"
@@ -44,7 +45,7 @@ func (t *Templates) parsePage(page domain.Model) (err error) {
 		return fmt.Errorf("%s такой шаблон вида %s уже обработан", modError, page)
 	}
 	t.pages[page] = template.New(page.String()).Funcs(functions)
-	embededHtmls, err := root.ReadDir(page.String())
+	embededHtmls, err := fs.ReadDir(t.fs, page.String())
 	if err != nil {
 		return fmt.Errorf("%s %w", modError, err)
 	}
@@ -66,15 +67,16 @@ func (t *Templates) parsePageHtml(page domain.Model, html string, templ *templat
 		}
 	}()
 	name, _ := strings.CutSuffix(path.Base(html), path.Ext(html))
-	path := path.Join(page.String(), html)
-	if file, err := t.fs.Open(path); err != nil {
+	fullPath := path.Join(page.String(), html)
+	if file, err := t.fs.Open(fullPath); err != nil {
 		return fmt.Errorf("%s %w", modError, err)
 	} else {
+		defer file.Close()
 		if txt, err := io.ReadAll(file); err != nil {
 			return fmt.Errorf("%s %w", modError, err)
 		} else {
 			if _, err := templ.New(name).Funcs(functions).Parse(string(txt)); err != nil {
-				return fmt.Errorf("%s template parse error: %w", modError, err)
+				return fmt.Errorf("%s template parse error in %s: %w", modError, fullPath, err)
 			}
 		}
 	}

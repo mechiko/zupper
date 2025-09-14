@@ -51,7 +51,7 @@ func (m *Application) SyncToStore(app domain.Apper) (err error) {
 	if err := app.SetOptions("export", m.Export); err != nil {
 		return fmt.Errorf("application sync to store: set export failed: %w", err)
 	}
-	if err := app.SetOptions("browser", m.Browser); err != nil {
+	if err := app.SetOptions("browser", string(m.Browser)); err != nil {
 		return fmt.Errorf("application sync to store: set browser failed: %w", err)
 	}
 	return nil
@@ -68,6 +68,10 @@ func (m *Application) ReadState(app domain.Apper, repo domain.Repo) (err error) 
 	for _, v := range repo.ListDbs() {
 		if repo.Is(v) {
 			info := repo.Info(v)
+			if info == nil {
+				// defensive: repo should guarantee non-nil, skip just in case
+				continue
+			}
 			switch v {
 			case dbscan.A3:
 				m.DbA3Desc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
