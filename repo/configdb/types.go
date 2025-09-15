@@ -6,13 +6,11 @@ import (
 
 	"github.com/mechiko/dbscan"
 	"github.com/upper/db/v4"
-	"go.uber.org/zap"
 )
 
 const modError = "configdb"
 
 type DbConfig struct {
-	logger    *zap.SugaredLogger
 	dbSession db.Session // открытый хэндл тут
 	dbInfo    *dbscan.DbInfo
 	infoType  dbscan.DbInfoType
