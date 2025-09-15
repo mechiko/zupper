@@ -5,40 +5,34 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
 	"path/filepath"
 
 	"time"
 	"zupper/config"
 	"zupper/domain"
-	"zupper/repo"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
-// type IApp interface {
-// 	Options() *config.Configuration
-// 	SaveOptions(string, any) error
-// 	Logger() *zap.SugaredLogger
-// }
-
 type app struct {
-	ctx       context.Context
-	uuid      string // идентификатор для уникальности формы
-	config    *config.Config
-	options   *config.Configuration // копия config.Configuration
-	loger     *zap.SugaredLogger
-	pwd       string
-	startTime time.Time
-	endTime   time.Time
-	repo      *repo.Repository
-	output    string
+	ctx           context.Context
+	uuid          string // идентификатор для уникальности формы
+	config        *config.Config
+	options       *config.Configuration // копия config.Configuration
+	loger         *zap.SugaredLogger
+	pwd           string
+	startTime     time.Time
+	endTime       time.Time
+	repo          domain.Repo
+	output        string
+	dbSelfPath    string
+	defaultDbPath string
 }
 
 var _ domain.Apper = (*app)(nil)
-
-const modError = "app"
 
 func New(cfg *config.Config, logger *zap.SugaredLogger, pwd string) *app {
 	newApp := &app{}
@@ -47,12 +41,7 @@ func New(cfg *config.Config, logger *zap.SugaredLogger, pwd string) *app {
 	newApp.config = cfg
 	newApp.options = cfg.Configuration()
 	newApp.uuid = uuid.New().String()
-	logger.Info("start pages")
 	newApp.initDateMn()
-	newApp.options.Export = "local copy"
-	if err := newApp.SaveOptions("export", "config copy"); err != nil {
-		fmt.Println(err)
-	}
 	return newApp
 }
 
@@ -69,8 +58,8 @@ func (a *app) initDateMn() {
 }
 
 func (a *app) NowDateString() string {
-	n := time.Now()
-	return fmt.Sprintf("%4d.%02d.%02d %02d:%02d:%02d", n.Local().Year(), n.Local().Month(), n.Local().Day(), n.Local().Hour(), n.Local().Minute(), n.Local().Second())
+	n := time.Now().Local()
+	return fmt.Sprintf("%4d.%02d.%02d %02d:%02d:%02d", n.Year(), n.Month(), n.Day(), n.Hour(), n.Minute(), n.Second())
 }
 
 func (a *app) StartDateString() string {
@@ -97,24 +86,29 @@ func (a *app) EndDate() time.Time {
 	return a.endTime
 }
 
-func (a *app) SetRepo(repo *repo.Repository) {
-	a.repo = repo
-}
-
 func (a *app) FsrarID() string {
-	return a.Config().Configuration().Application.Fsrarid
+	return a.options.Application.Fsrarid
 }
 
 func (a *app) SetFsrarID(id string) {
-	a.Config().SetInConfig("application.fsrarid", id)
+	a.SetOptions("application.fsrarid", id)
+	a.SaveOptions()
 }
 
 func (a *app) Pwd() string {
 	return a.pwd
 }
 
-func (a *app) Repo() *repo.Repository {
+func (a *app) Repo() domain.Repo {
 	return a.repo
+}
+
+func (a *app) SetRepo(repo domain.Repo) error {
+	if a.repo != nil {
+		return fmt.Errorf("попытка установить новый репо при уже работающем")
+	}
+	a.repo = repo
+	return nil
 }
 
 func (a *app) Output() string {
@@ -139,11 +133,18 @@ func (a *app) Options() *config.Configuration {
 }
 
 // записываем ключ и его значение только в пакет config
-// изменения записываются в файл конфигурации
-func (a *app) SaveOptions(key string, value any) error {
+// и Options
+// изменения не записываются в файл конфигурации
+func (a *app) SetOptions(key string, value any) error {
 	a.config.SetInConfig(key, value)
+	a.options = a.config.Configuration()
+	return nil
+}
+
+// записываем файл конфигурации состояние конфигурации
+func (a *app) SaveOptions() error {
 	if err := a.config.Save(); err != nil {
-		return fmt.Errorf("save in config error %w", err)
+		return fmt.Errorf("save all in config error %w", err)
 	}
 	return nil
 }
@@ -195,11 +196,12 @@ func (a *app) ConfigPath() string {
 	return ""
 }
 
-func (a *app) DbPath() string {
-	if a.config != nil {
-		return a.config.DbPath()
-	}
-	return ""
+func (a *app) DefaultDbPath() string {
+	return a.defaultDbPath
+}
+
+func (a *app) SetDefaultDbPath(path string) {
+	a.defaultDbPath = path
 }
 
 func (a *app) LogPath() string {
@@ -210,6 +212,24 @@ func (a *app) LogPath() string {
 }
 
 func (a *app) BaseUrl() string {
-	uri := fmt.Sprintf("http://%s:%s", a.options.Hostname, a.options.HostPort)
-	return uri
+	host := a.options.Hostname
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	port := a.options.HostPort
+	u := &url.URL{Scheme: "http"}
+	if port != "" {
+		u.Host = fmt.Sprintf("%s:%s", host, port)
+	} else {
+		u.Host = host
+	}
+	return u.String()
+}
+
+func (a *app) DbSelfPath() string {
+	return a.dbSelfPath
+}
+
+func (a *app) SetDbSelfPath(path string) {
+	a.dbSelfPath = path
 }

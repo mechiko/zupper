@@ -5,6 +5,8 @@ import (
 	"image/color"
 
 	"zupper/gui/resource"
+
+	"github.com/mechiko/walk"
 )
 
 func (w *MainWindow) Create(cfg *MainWindowConfig) (err error) {
@@ -35,10 +37,15 @@ func (w *MainWindow) Create(cfg *MainWindowConfig) (err error) {
 		}
 	}()
 	fontMain := w.Font()
-	if fontMain != nil {
+	if fontMain == nil {
 		w.Logger().Errorf("gui:mainwindow font %v", err)
 	} else {
-		w.StatusBar().SetFont(fontMain)
+		font, err := walk.NewFont(fontMain.Family(), pointSizeFontStatusBar, fontMain.Style())
+		if err != nil {
+			w.Logger().Errorf("gui:mainwindow font %v", err)
+		} else {
+			w.StatusBar().SetFont(font)
+		}
 	}
 
 	if w.Tvm != nil {

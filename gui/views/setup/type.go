@@ -14,7 +14,7 @@ import (
 
 const modError = "gui:view:setup"
 
-type HomePage struct {
+type SetupPage struct {
 	*walk.Composite
 	domain.Apper
 	disableChange bool
@@ -32,6 +32,7 @@ type HomePage struct {
 	lblDbA3     *walk.Label
 }
 
+// обязательный для реализации интерфейса types.Page
 // герератор страницы при активации в меню
 // берем данные из модели страницы в редукторе и заполняем
 func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp types.Page, err error) {
@@ -40,7 +41,7 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 			panic(fmt.Errorf("%s newHomePage panic %v", modError, r))
 		}
 	}()
-	p := &HomePage{
+	p := &SetupPage{
 		Apper:         app,
 		repo:          repo,
 		disableChange: true,
@@ -62,4 +63,3 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 	}
 	return p, err
 }
-

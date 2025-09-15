@@ -41,11 +41,31 @@ func (p *PingSuzInfo) String() string {
 }
 
 func (m *TrueClientModel) Sync(cfg domain.Apper) {
-	cfg.SaveOptions("trueclient.test", m.Test)
-	cfg.SaveOptions("trueclient.deviceid", m.DeviceID)
-	cfg.SaveOptions("trueclient.hashkey", m.HashKey)
-	cfg.SaveOptions("trueclient.omsid", m.OmsID)
-	cfg.SaveOptions("trueclient.useconfigdb", m.UseConfigDB)
+	if err := cfg.SetOptions("trueclient.test", m.Test); err != nil {
+		cfg.Logger().Warnw("SetOptions failed", "key", "trueclient.test", "err", err)
+	}
+	if err := cfg.SetOptions("trueclient.deviceid", m.DeviceID); err != nil {
+		cfg.Logger().Warnw("SetOptions failed", "key", "trueclient.deviceid", "err", err)
+	}
+	if err := cfg.SetOptions("trueclient.hashkey", m.HashKey); err != nil {
+		cfg.Logger().Warnw("SetOptions failed", "key", "trueclient.hashkey", "err", err)
+	}
+	if err := cfg.SetOptions("trueclient.omsid", m.OmsID); err != nil {
+		cfg.Logger().Warnw("SetOptions failed", "key", "trueclient.omsid", "err", err)
+	}
+	if err := cfg.SetOptions("trueclient.useconfigdb", m.UseConfigDB); err != nil {
+		cfg.Logger().Warnw("SetOptions failed", "key", "trueclient.useconfigdb", "err", err)
+	}
+	if err := m.Save(cfg); err != nil {
+		cfg.Logger().Errorw("SaveOptions failed", "err", err)
+	}
+}
+
+func (m *TrueClientModel) Save(cfg domain.Apper) error {
+	if err := cfg.SaveOptions(); err != nil {
+		return fmt.Errorf("failed to save TrueClient options: %w", err)
+	}
+	return nil
 }
 
 // когда считываем конфиг сбрасываем токены и время авторизации
@@ -113,12 +133,16 @@ func (m *TrueClientModel) Copy() (interface{}, error) {
 	}
 	dst.Validates = make(map[string]string)
 	for k, v := range m.Validates {
-		dst.MyStore[k] = v
+		dst.Validates[k] = v
 	}
 	dst.Errors = make([]string, len(m.Errors))
 	copy(dst.Errors, m.Errors)
-	ping := *m.PingSuz
-	dst.PingSuz = &ping
+	if m.PingSuz != nil {
+		ping := *m.PingSuz
+		dst.PingSuz = &ping
+	} else {
+		dst.PingSuz = nil
+	}
 	return &dst, nil
 }
 

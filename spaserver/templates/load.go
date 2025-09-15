@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"path"
 	"strings"
-	"zupper/reductor"
+	"zupper/domain"
 )
 
 // debug
@@ -16,7 +17,7 @@ import (
 // все пути и включения отображаются из embeded структуры файлов, по ним строится t.pages[page]
 // состоящая из дерева шаблонов для каждой страницы (независимых)
 func (t *Templates) LoadTemplates() (err error) {
-	t.pages = make(map[reductor.ModelType]*template.Template)
+	t.pages = make(map[domain.Model]*template.Template)
 	t.fs = root
 	embededPages, err := root.ReadDir(".")
 	if err != nil {
@@ -25,7 +26,10 @@ func (t *Templates) LoadTemplates() (err error) {
 	for _, page := range embededPages {
 		// t.Logger().Debugf("page %d %s %v", i, page.Name(), page.IsDir())
 		if page.IsDir() {
-			name := reductor.ModelTypeFromString(page.Name())
+			name, err := domain.ModelFromString(page.Name())
+			if err != nil {
+				return fmt.Errorf("%s LoadTemplates %w", modError, err)
+			}
 			if err := t.parsePage(name); err != nil {
 				return fmt.Errorf("%s %w", modError, err)
 			}
@@ -34,14 +38,14 @@ func (t *Templates) LoadTemplates() (err error) {
 	return nil
 }
 
-func (t *Templates) parsePage(page reductor.ModelType) (err error) {
+func (t *Templates) parsePage(page domain.Model) (err error) {
 	// создаем новый шаблон страницы
 	// при кэшировании мап не переписывается
 	if _, ok := t.pages[page]; ok {
 		return fmt.Errorf("%s такой шаблон вида %s уже обработан", modError, page)
 	}
 	t.pages[page] = template.New(page.String()).Funcs(functions)
-	embededHtmls, err := root.ReadDir(page.String())
+	embededHtmls, err := fs.ReadDir(t.fs, page.String())
 	if err != nil {
 		return fmt.Errorf("%s %w", modError, err)
 	}
@@ -56,21 +60,24 @@ func (t *Templates) parsePage(page reductor.ModelType) (err error) {
 	return nil
 }
 
-func (t *Templates) parsePageHtml(page reductor.ModelType, html string, templ *template.Template) (err error) {
+func (t *Templates) parsePageHtml(page domain.Model, html string, templ *template.Template) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic %v", r)
 		}
 	}()
 	name, _ := strings.CutSuffix(path.Base(html), path.Ext(html))
-	path := path.Join(page.String(), html)
-	if file, err := t.fs.Open(path); err != nil {
+	fullPath := path.Join(page.String(), html)
+	if file, err := t.fs.Open(fullPath); err != nil {
 		return fmt.Errorf("%s %w", modError, err)
 	} else {
+		defer file.Close()
 		if txt, err := io.ReadAll(file); err != nil {
 			return fmt.Errorf("%s %w", modError, err)
 		} else {
-			templ.New(name).Funcs(functions).Parse(string(txt))
+			if _, err := templ.New(name).Funcs(functions).Parse(string(txt)); err != nil {
+				return fmt.Errorf("%s template parse error in %s: %w", modError, fullPath, err)
+			}
 		}
 	}
 	return nil

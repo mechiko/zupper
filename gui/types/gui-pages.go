@@ -12,8 +12,8 @@ type PageFactoryFunc func(parent walk.Container, app domain.Apper, repo *repo.Re
 
 type Page interface {
 	walk.Container
-	Parent() walk.Container
-	SetParent(parent walk.Container) error
+	// Parent() walk.Container
+	// SetParent(parent walk.Container) error
 	Clear()
 	Update()
 	SetSendFunc(f func(domain.Model))

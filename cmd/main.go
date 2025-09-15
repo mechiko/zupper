@@ -16,8 +16,11 @@ import (
 	"zupper/reductor"
 	"zupper/repo"
 	"zupper/spaserver"
-	"zupper/utility"
 	"zupper/zaplog"
+
+	"github.com/mechiko/dbscan"
+	"github.com/mechiko/utility"
+	"go.uber.org/zap"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -28,8 +31,8 @@ const modError = "main"
 var fileExe string
 var dir string
 
-// если local true то папка создается локально
-var local = flag.Bool("local", false, "")
+// если home true то папка создается локально
+var home = flag.Bool("home", false, "")
 
 func init() {
 	flag.Parse()
@@ -46,8 +49,11 @@ func init() {
 	}
 }
 
-func errMessageExit(title string, errDescription string) {
-	utility.MessageBox(title, errDescription)
+func errMessageExit(loger *zap.SugaredLogger, title string, err error) {
+	if loger != nil {
+		loger.Errorf("%s %v", title, err)
+	}
+	utility.MessageBox(title, err.Error())
 	os.Exit(-1)
 }
 
@@ -58,9 +64,9 @@ func main() {
 
 	group, groupCtx := errgroup.WithContext(ctx)
 
-	cfg, err := config.New("", !*local)
+	cfg, err := config.New("", *home)
 	if err != nil {
-		errMessageExit("ошибка конфигурации", err.Error())
+		errMessageExit(nil, "ошибка конфигурации", err)
 	}
 
 	var logsOutConfig = map[string][]string{
@@ -71,15 +77,12 @@ func main() {
 	}
 	zl, err := zaplog.New(logsOutConfig, true)
 	if err != nil {
-		errMessageExit("ошибка создания логера", err.Error())
+		errMessageExit(nil, "ошибка создания логера", err)
 	}
-	// group.Go(func() error {
-	// 	return zl.Run(groupCtx)
-	// })
 
 	lg, err := zl.GetLogger("logger")
 	if err != nil {
-		errMessageExit("ошибка получения логера", err.Error())
+		errMessageExit(nil, "ошибка получения логера", err)
 	}
 	loger := lg.Sugar()
 	loger.Debug("zaplog started")
@@ -88,41 +91,56 @@ func main() {
 		loger.Infof("pkg:config warning %s", cfg.Warning())
 	}
 
-	errProcessExit := func(title string, errDescription string) {
-		loger.Errorf("%s %s", title, errDescription)
-		errMessageExit(title, errDescription)
+	errProcessExit := func(title string, err error) {
+		errMessageExit(loger, title, err)
 	}
 	// создаем приложение с опциями из конфига и логером основным
 	app := app.New(cfg, loger, dir)
+	app.SetDbSelfPath(cfg.ConfigPath())
+	// бд основные находятся в текущем каталоге если не переопределено в настройках
+	app.SetDefaultDbPath("")
+
 	// инициализируем пути необходимые приложению
 	app.CreatePath()
 	// создаем редуктор для хранения моделей приложения
 	reductorLogger, err := zl.GetLogger("reductor")
 	if err != nil {
-		errProcessExit("Ошибка получения логера для редуктора", err.Error())
+		errProcessExit("Ошибка получения логера для редуктора", err)
 	}
 
-	if _, err := reductor.New(reductorLogger.Sugar()); err != nil {
-		errProcessExit("Ошибка создания редуктора", err.Error())
+	if err := reductor.New(reductorLogger.Sugar()); err != nil {
+		errProcessExit("Ошибка создания редуктора", err)
 	}
 
 	loger.Info("start repo")
 	// инициализируем REPO
 	// TODO изменить получение путей из конфига
-	dbPath := cfg.DbPath()
-	repoStart := repo.New(app, dbPath)
-	if len(repoStart.Errors()) > 0 {
-		fullErr := strings.Join(repoStart.Errors(), "\n")
-		errProcessExit("Ошибки запуска репозитория", fullErr)
+	listDbs := make(dbscan.ListDbInfoForScan)
+	listDbs[dbscan.Config] = &dbscan.DbInfo{}
+	listDbs[dbscan.Other] = &dbscan.DbInfo{
+		File:   "4zupper.db",
+		Name:   "zupper",
+		Driver: "sqlite",
+		Path:   `.nevakod\4zupper`,
 	}
-	app.SetRepo(repoStart)
+	listDbs[dbscan.A3] = &dbscan.DbInfo{}
+	listDbs[dbscan.TrueZnak] = &dbscan.DbInfo{}
+
+	repoStart, err := repo.New(app.Logger(), listDbs, app.DefaultDbPath())
+	if err != nil {
+		errProcessExit("Ошибки запуска репозитория", err)
+	}
+	err = app.SetRepo(repoStart)
+	if err != nil {
+		errProcessExit("Ошибки установки в app репозитория", err)
+	}
 
 	appModel, err := application.New(app, repoStart)
 	if err != nil {
-		errProcessExit("Ошибка получения логера для редуктора", err.Error())
+		errProcessExit("Ошибка создания модели для редуктора", err)
 	}
-	if err := reductor.Instance().SetModel(appModel.Model(), appModel); err != nil {
-		errProcessExit("Ошибка редуктора", err.Error())
+	if err := reductor.Instance().SetModel(appModel, false); err != nil {
+		errProcessExit("Ошибка редуктора", err)
 	}
 	group.Go(func() error {
 		go func() {
@@ -132,12 +150,19 @@ func main() {
 		return repoStart.Run(groupCtx)
 	})
 	// тесты
-	if err := checkdbg.NewChecks(app).Run(); err != nil {
-		loger.Errorf("check error %v", err)
+	checker, err := checkdbg.NewChecks(loger, repoStart)
+	if err != nil {
 		cancel()
 		// Wait for cleanup to complete
 		group.Wait()
-		errProcessExit("Check failed", err.Error())
+		errProcessExit("Check failed", err)
+	}
+	err = checker.Run()
+	if err != nil {
+		cancel()
+		// Wait for cleanup to complete
+		group.Wait()
+		errProcessExit("Check failed", err)
 	}
 
 	loger.Info("start up webapp")
@@ -147,7 +172,7 @@ func main() {
 		if portFree, err := utility.GetFreePort(); err == nil {
 			port = fmt.Sprintf("%d", portFree)
 			// порт не записываем в файл конфигурации остается только в модели приложения
-			app.Config().SetInConfig("hostport", port)
+			app.SetOptions("hostport", port)
 		}
 	}
 	loger.Infof("http port %s", port)
@@ -155,9 +180,9 @@ func main() {
 	// тут инициализируются так же модели для всех видов
 	spaServerLogger, err := zl.GetLogger("echo")
 	if err != nil {
-		errProcessExit("Ошибка получения логера для http server", err.Error())
+		errProcessExit("Ошибка получения логера для http server", err)
 	}
-	httpServer := spaserver.New(app, spaServerLogger, repoStart, port, true)
+	httpServer := spaserver.New(app, spaServerLogger, port, true)
 	loger.Infof("отладка шаблонов %v", httpServer.TemplateIsDebug())
 	loger.Infof("путь шаблонов %s", httpServer.RootPathTemplates())
 	// запускаем сервер эхо через него SSE работает для флэш сообщений

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 	"zupper/domain"
-	"zupper/reductor"
-	"zupper/repo"
+	"zupper/embedded"
 	"zupper/spaserver/sse"
 	"zupper/spaserver/templates"
 	"zupper/spaserver/views"
@@ -39,11 +39,10 @@ type Server struct {
 	shutdownTimeout time.Duration
 	sessionManager  *scs.SessionManager
 	debug           bool
-	private         *echo.Group
 	templates       *templates.Templates
-	views           map[reductor.ModelType]views.IView
-	menu            []reductor.ModelType
-	activePage      reductor.ModelType
+	views           map[domain.Model]views.IView
+	menu            []domain.Model
+	activePage      domain.Model
 	defaultPage     string
 	flush           *FlushMsg
 	flushMu         sync.RWMutex
@@ -51,12 +50,11 @@ type Server struct {
 	sseManager      *sse.Server
 	streamError     *sse.Stream
 	streamInfo      *sse.Stream
-	repo            *repo.Repository
 }
 
 // var sseManager *sse.Server
 
-func New(a domain.Apper, zl *zap.Logger, repo *repo.Repository, port string, debug bool) *Server {
+func New(a domain.Apper, zl *zap.Logger, port string, debug bool) *Server {
 	addr := fmt.Sprintf("%s:%s", "127.0.0.1", port)
 	if port == "" {
 		addr = _defaultAddr
@@ -76,35 +74,46 @@ func New(a domain.Apper, zl *zap.Logger, repo *repo.Repository, port string, deb
 		AllowCredentials: true,
 		AllowMethods:     []string{echo.OPTIONS, echo.GET, echo.HEAD, echo.PUT, echo.PATCH, echo.POST, echo.DELETE},
 	}))
-	// e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-	// 	HTML5:      true,
-	// 	Root:       "root", // because files are located in `root` directory
-	// 	Filesystem: http.FS(embeded.Root),
-	// }))
-	// наследует родительские middleware
-	private := e.Group("/admin")
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		HTML5:      true,
+		Root:       "root", // because files are located in `root` directory
+		Filesystem: http.FS(embedded.Root),
+	}))
+	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+		XSSProtection:      "1; mode=block",
+		ContentTypeNosniff: "nosniff",
+		XFrameOptions:      "DENY",
+		ReferrerPolicy:     "no-referrer",
+	}))
+
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			p := c.Request().URL.Path
+			if strings.HasPrefix(p, "/assets/") || strings.HasSuffix(p, ".css") || strings.HasSuffix(p, ".js") {
+				c.Response().Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			}
+			return next(c)
+		}
+	})
+
 	ss := &Server{
 		Apper:           a,
 		addr:            addr,
 		server:          e,
 		notify:          make(chan error, 1),
 		shutdownTimeout: _defaultShutdownTimeout,
-		private:         private,
 		debug:           debug,
 		sessionManager:  sess,
-		views:           make(map[reductor.ModelType]views.IView), // массив видов по нему находим шаблоны для рендера
-		menu:            make([]reductor.ModelType, 0),
+		views:           make(map[domain.Model]views.IView), // массив видов по нему находим шаблоны для рендера
+		menu:            make([]domain.Model, 0),
 		defaultPage:     "",
-		activePage:      reductor.Home,
+		activePage:      domain.NoPage,
 		htmx:            htmx.New(),
-		repo:            repo,
 	}
 
 	e.Renderer = ss
 	ss.templates = templates.New(ss)
 	ss.Routes()
-	ss.menu = append(ss.menu, reductor.Home)
-	ss.menu = append(ss.menu, reductor.Setup)
 	ss.sseManager = sse.New()
 	ss.streamError = ss.sseManager.CreateStream("error")
 	ss.streamInfo = ss.sseManager.CreateStream("info")
@@ -118,12 +127,10 @@ func (s *Server) Start() {
 	}()
 }
 
-// Notify -.
 func (s *Server) Notify() <-chan error {
 	return s.notify
 }
 
-// Shutdown -.
 func (s *Server) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
 	defer cancel()
@@ -146,30 +153,15 @@ func (s *Server) Echo() *echo.Echo {
 	return s.server
 }
 
-func (s *Server) SetActivePage(p reductor.ModelType) {
+func (s *Server) SetActivePage(p domain.Model) {
 	s.activePage = p
 }
 
-func (s *Server) ActivePage() reductor.ModelType {
+func (s *Server) ActivePage() domain.Model {
 	return s.activePage
 }
 
-// устанавливает заголовок окна используется в Render
-// func (s *Server) SetTitlePage(title string) {
-// 	runtime.WindowSetTitle(s.Ctx(), title)
-// }
-
-// используется в меню
-// func (s *Server) ActivePageTitle(title string) string {
-// 	runtime.WindowSetTitle(s.Ctx(), title)
-// 	view, ok := s.views[s.activePage]
-// 	if !ok {
-// 		return "нет такого вида"
-// 	}
-// 	return view.Title()
-// }
-
-func (s *Server) Views() map[reductor.ModelType]views.IView {
+func (s *Server) Views() map[domain.Model]views.IView {
 	return s.views
 }
 
@@ -180,16 +172,13 @@ func (s *Server) Reload() {
 	if s.streamInfo != nil && s.streamInfo.Eventlog != nil {
 		s.streamInfo.Eventlog.Clear()
 	}
-	// if ctx := s.Ctx(); ctx != nil {
-	// 	runtime.WindowReload(ctx)
-	// }
 }
 
 func (s *Server) Htmx() *htmx.HTMX {
 	return s.htmx
 }
 
-func (s *Server) Menu() []reductor.ModelType {
+func (s *Server) Menu() []domain.Model {
 	return s.menu
 }
 
@@ -205,8 +194,4 @@ func (s *Server) RootPathTemplates() string {
 		return ""
 	}
 	return s.templates.RootPathTemplates()
-}
-
-func (s *Server) Repo() *repo.Repository {
-	return s.repo
 }

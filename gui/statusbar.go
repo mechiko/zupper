@@ -11,7 +11,7 @@ func (s *guiService) StatusBarInit() error {
 	if err != nil {
 		return fmt.Errorf("ошибка создания модели statusbar %w", err)
 	}
-	if err := reductor.Instance().SetModel(statusModel.Model(), statusModel); err != nil {
+	if err := reductor.Instance().SetModel(statusModel, false); err != nil {
 		return fmt.Errorf("ошибка редуктора сохранения модели statusbar %w", err)
 	}
 	return nil

@@ -1,0 +1,34 @@
+package znakpacks
+
+import (
+	"fmt"
+	"zupper/domain/models/znakagregate"
+	"zupper/reductor"
+)
+
+// возращаем указатель на модель полученную из редуктора
+func (p *ZnakPage) PageModel() (interface{}, error) {
+	model, err := reductor.Instance().Model(p.model)
+	if err != nil {
+		return nil, fmt.Errorf("view:znak pagemodel %w", err)
+	}
+	return model, nil
+}
+
+// с преобразованием
+// если ошибка чтения модели то возвращаем модель из приложения
+func (p *ZnakPage) Model() (*znakagregate.ZnakAgregate, error) {
+	r := reductor.Instance()
+	if !r.IsExistModel(p.model) {
+		return nil, fmt.Errorf("view:znak нет такой модели в редукторе")
+	}
+	any, err := r.Model(p.model)
+	if err != nil {
+		return nil, fmt.Errorf("view:znak get model %w", err)
+	}
+	mdl, ok := any.(*znakagregate.ZnakAgregate)
+	if !ok {
+		return nil, fmt.Errorf("view:znak Model другой тип в редукторе %T", any)
+	}
+	return mdl, nil
+}

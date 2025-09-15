@@ -77,7 +77,6 @@ func (w *MainWindow) SetCurrentMenu(pageMenu *types.AppMenu) error {
 	if err != nil {
 		return fmt.Errorf("newPage(w.pageCom) %w", err)
 	}
-	page.SetSendFunc(w.SendChanel)
 
 	w.Tvm.SetCurrentPage(page)
 	w.Tvm.CurrentMenu = pageMenu

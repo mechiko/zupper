@@ -1,0 +1,254 @@
+   <button onclick="javascript:location.reload();" class="no-print bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded">Обновить</button>
+   <button onclick="javascript:clearreport();" class="no-print bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded">Исправить</button>
+   <div class="md:container p-2">
+    <div class="text-center">
+      <div class="font-bold text-base">{{$.ReportName}}</div>
+    </div>    
+    {{ if $.IsDoubleFormProduce }}
+    <div class="m-5">
+      <table class="print-form border border-collapse" rules="all">
+      <caption><div class="">Дубликаты справок для отчетов производства</div></caption>
+      <col style="width:10%">
+      <col style="width:10%">
+      <thead>
+        <tr class="text-base">
+          <th class="text-center">Идентификатор</th>
+          <th class="text-center">Дубликатов</th>
+        </tr>
+      </thead>
+      <tbody class="text-base" style="text-align:center;">
+{{range $j, $row := $.IsDoubleFormProduceRow}}
+      <tr class="text-base">
+        <td class="p-2 text-left">{{$row.Id}}</td>
+        <td class="p-2">{{$row.Total}}</td>
+      </tr>
+{{end}}
+     </tbody>
+     </table>
+    </div>    
+    {{else}}
+    <div class="m-5">Дубликатов справок для отчетов производства нет</div>
+    {{end}}
+
+    {{ if $.IsDoubleFormImport }}
+    <div class="m-5">
+      <table class="print-form border border-collapse" rules="all">
+      <caption><div class="">Дубликаты справок для отчетов импорта</div></caption>
+      <col style="width:10%">
+      <col style="width:10%">
+      <thead>
+        <tr class="text-base">
+          <th class="text-center">Идентификатор</th>
+          <th class="text-center">Дубликатов</th>
+        </tr>
+      </thead>
+      <tbody class="text-base" style="text-align:center;">
+{{range $j, $row := $.IsDoubleFormImportRow}}
+      <tr class="text-base">
+        <td class="p-2 text-left">{{$row.Id}}</td>
+        <td class="p-2">{{$row.Total}}</td>
+      </tr>
+{{end}}
+     </tbody>
+     </table>
+    </div>    
+    {{else}}
+    <div class="m-5">Дубликатов справок для отчетов импорта нет</div>
+    {{end}}
+
+    {{ if $.IsDoubleFormTtn }}
+    <div class="m-5">
+      <table class="print-form border border-collapse" rules="all">
+      <caption><div class="">Дубликаты справок для ТТН</div></caption>
+      <col style="width:10%">
+      <col style="width:10%">
+      <thead>
+        <tr class="text-base">
+          <th class="text-center">Идентификатор</th>
+          <th class="text-center">Дубликатов</th>
+        </tr>
+      </thead>
+      <tbody class="text-base" style="text-align:center;">
+{{range $j, $row := $.IsDoubleFormTtnRow}}
+      <tr class="text-base">
+        <td class="p-2 text-left">{{$row.Id}}</td>
+        <td class="p-2">{{$row.Total}}</td>
+      </tr>
+{{end}}
+     </tbody>
+     </table>
+    </div>    
+    {{else}}
+    <div class="m-5">Дубликатов справок для ТТН нет</div>
+    {{end}}
+
+{{ if $.IsDoubleForm2RestVolume }}
+    <div class="m-5 w-1/3">
+      <table class="print-form border border-collapse" rules="all">
+      <caption><div class="">Дубликаты справок в остатках порционных</div></caption>
+      <col style="width:50%">
+      <col style="width:20%">
+      <thead>
+        <tr class="text-base">
+          <th class="text-center">Идентификатор</th>
+          <th class="text-center">Дубликатов</th>
+        </tr>
+      </thead>
+      <tbody class="text-base" style="text-align:center;">
+{{range $j, $row := $.IsDoubleForm2RestVolumeRow}}
+      <tr class="text-base">
+        <td class="p-2 text-left">{{$row.Id}}</td>
+        <td class="p-2">{{$row.Total}}</td>
+      </tr>
+{{end}}
+     </tbody>
+     </table>
+    </div>    
+    {{else}}
+    <div class="m-5">Дубликатов справок в остатках порционных нет</div>
+    {{end}}
+
+    {{ if $.IsDoubleForm1 }}
+    <div class="m-5">
+      <table class="print-form border border-collapse" rules="all">
+      <caption><div class="">Дубликаты справок 1</div></caption>
+      <col style="width:10%">
+      <col style="width:10%">
+      <thead>
+        <tr class="text-base">
+          <th class="text-center">Идентификатор</th>
+          <th class="text-center">Дубликатов</th>
+        </tr>
+      </thead>
+      <tbody class="text-base" style="text-align:center;">
+{{range $j, $row := $.IsDoubleForm1Row}}
+      <tr class="text-base">
+        <td class="p-2 text-left">{{$row.Id}}</td>
+        <td class="p-2">{{$row.Total}}</td>
+      </tr>
+{{end}}
+     </tbody>
+     </table>
+    </div>    
+    {{else}}
+    <div class="m-5">Дубликатов справок 1 нет</div>
+    {{end}}
+
+    {{ if $.IsDoubleForm2 }}
+    <div class="m-5">
+      <table class="print-form border border-collapse" rules="all">
+      <caption><div class="">Дубликаты справок 2</div></caption>
+      <col style="width:10%">
+      <col style="width:10%">
+      <thead>
+        <tr class="text-base">
+          <th class="text-center">Идентификатор</th>
+          <th class="text-center">Дубликатов</th>
+        </tr>
+      </thead>
+      <tbody class="text-base" style="text-align:center;">
+{{range $j, $row := $.IsDoubleForm2Row}}
+      <tr class="text-base">
+        <td class="p-2 text-left">{{$row.Id}}</td>
+        <td class="p-2">{{$row.Total}}</td>
+      </tr>
+{{end}}
+     </tbody>
+     </table>
+    </div>    
+    {{else}}
+    <div class="m-5">Дубликатов справок 2 нет</div>
+    {{end}}
+  </div>
+
+{{if $.AbsentForm1}}
+  <div class="m-5">
+      <details>
+        <summary>Отсутствуют справки 1 в кол-ве {{len $.AbsentForm1}}</summary>
+      <table class="print-form border border-collapse" rules="all">
+      <col style="width:20%">
+      <thead>
+        <tr class="text-base">
+          <th class="text-center">Идентификатор</th>
+        </tr>
+      </thead>
+      <tbody class="text-base" style="text-align:center;">
+{{range $j, $row := $.AbsentForm1}}
+      <tr class="text-base">
+        <td class="p-2 text-left">{{$row.Id}}</td>
+      </tr>
+{{end}}
+     </tbody>
+     </table>
+      </details>
+    </div>    
+{{end}}
+{{if $.AbsentForm2}}
+  <div class="m-5">
+      <details>
+        <summary>Отсутствуют справки 2 в кол-ве {{len $.AbsentForm2}}</summary>
+        <table class="print-form border border-collapse" rules="all">
+            <col style="width:20%">
+            <thead>
+              <tr class="text-base">
+                <th class="text-center">Идентификатор</th>
+              </tr>
+            </thead>
+            <tbody class="text-base" style="text-align:center;">
+      {{range $j, $row := $.AbsentForm2}}
+            <tr class="text-base">
+              <td class="p-2 text-left">{{$row.Id}}</td>
+            </tr>
+      {{end}}
+          </tbody>
+          </table>
+      </details>
+  </div>    
+{{end}}
+{{if $.AbsentClient}}
+  <div class="m-5 py-5">
+      <details>
+        <summary>Отсутствуют клиенты в кол-ве {{len $.AbsentClient}}</summary>
+      <table class="print-form border border-collapse" rules="all">
+      <col style="width:20%">
+      <thead>
+        <tr class="text-base">
+          <th class="text-center">Идентификатор</th>
+        </tr>
+      </thead>
+      <tbody class="text-base" style="text-align:center;">
+{{range $j, $row := $.AbsentClient}}
+      <tr class="text-base">
+        <td class="p-2 text-left">{{$row.Id}}</td>
+      </tr>
+{{end}}
+    </tbody>
+     </table>
+      </details>
+    </div>    
+{{end}}
+<br>
+
+<script>
+  function clearreport() {
+    console.log("start clear");
+    fetch('/maintain/statusdbclear', { method: 'POST', headers: { 'Accept': 'application/json' } })
+      .then((response) => {
+        // Проверяем успешность запроса и выкидываем ошибку
+        if (!response.ok) {
+          throw new Error('Error occurred!')
+        }
+        return response.json;
+      })
+      .then((_data) => {
+        console.log("finish clear responce");
+        console.log(_data);
+        document.location.reload();
+      })
+      // Ошибки запроса
+      .catch((err) => {
+        console.log(err)
+      }
+    )
+  };
+</script>

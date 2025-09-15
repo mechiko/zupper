@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"sync/atomic"
+	"time"
 	"zupper/domain"
 	"zupper/reductor"
 )
@@ -24,13 +25,20 @@ func New(a domain.Apper) (s *trueClient) {
 	}()
 
 	var netTransport = &http.Transport{
-		Dial: (&net.Dialer{
-			// Timeout: 5 * time.Second,
-		}).Dial,
-		// TLSHandshakeTimeout: 5 * time.Second,
+		DialContext: (&net.Dialer{
+			Timeout:   5 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout:   5 * time.Second,
+		ResponseHeaderTimeout: 30 * time.Second,
+		IdleConnTimeout:       90 * time.Second,
+		MaxIdleConns:          100,
+		MaxIdleConnsPerHost:   10,
+		ExpectContinueTimeout: 1 * time.Second,
 	}
 	var netClient = &http.Client{
 		// Timeout:   time.Second * 120,
+		Timeout:   60 * time.Second,
 		Transport: netTransport,
 	}
 
@@ -44,15 +52,15 @@ func New(a domain.Apper) (s *trueClient) {
 	// здесь мы уже получаем ее существующую
 	reductorModel, err := reductor.Instance().Model(domain.TrueClient)
 	if err != nil {
-		strErr := fmt.Sprintf("reductor trueclient error %w", err)
-		a.Logger().Error(strErr)
-		panic(strErr)
+		errWrap := fmt.Errorf("%s: reductor model retrieval failed: %w", modError, err)
+		a.Logger().Errorw("reductor model retrieval failed", "model", "trueclient", "err", errWrap)
+		panic(errWrap)
 	}
 	model, ok := reductorModel.(*TrueClientModel)
 	if !ok {
-		strErr := fmt.Sprintf("reductor model trueclient wrong type %T", reductorModel)
-		a.Logger().Error(strErr)
-		panic(strErr)
+		errType := fmt.Errorf("%s: reductor model trueclient wrong type %T", modError, reductorModel)
+		a.Logger().Errorw("reductor model type assertion failed", "expected", "*TrueClientModel", "actual", fmt.Sprintf("%T", reductorModel), "err", errType)
+		panic(errType)
 	}
 	s = &trueClient{
 		Apper:      a,
@@ -84,7 +92,7 @@ func New(a domain.Apper) (s *trueClient) {
 			panic(fmt.Sprintf("%s %s", modError, "необходимо получить токены авторизации в АлкоХелп 3"))
 		}
 		if err := s.AuthGisSuz(); err != nil {
-			panic(fmt.Sprintf("%s %s", modError, err.Error()))
+			panic(fmt.Errorf("%s: %w", modError, err))
 		}
 		// сохраняем конфиг в объекте
 		s.Save(model)

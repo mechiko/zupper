@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"zupper/domain/models/application"
 	"zupper/reductor"
-	"zupper/utility"
+
+	"github.com/mechiko/utility"
 )
 
 // возращаем указатель на модель полученную из редуктора
-func (p *HomePage) PageModel() (interface{}, error) {
+func (p *SetupPage) PageModel() (interface{}, error) {
 	model, err := reductor.Instance().Model(p.model)
 	if err != nil {
 		return nil, fmt.Errorf("view:setup pagemodel %w", err)
@@ -18,7 +19,7 @@ func (p *HomePage) PageModel() (interface{}, error) {
 
 // с преобразованием
 // если ошибка чтения модели то возвращаем модель из приложения
-func (p *HomePage) Model() (*application.Application, error) {
+func (p *SetupPage) Model() (*application.Application, error) {
 	if reductor.Instance().IsExistModel(p.model) {
 		reductorModel, err := reductor.Instance().Model(p.model)
 		if err != nil {

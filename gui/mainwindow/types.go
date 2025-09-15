@@ -12,6 +12,8 @@ import (
 
 const modError = "gui:mainwindow"
 
+const pointSizeFontStatusBar = 10
+
 type MainWindow struct {
 	*walk.MainWindow
 	domain.Apper

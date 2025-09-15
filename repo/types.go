@@ -1,151 +1,94 @@
 package repo
 
 import (
-	"context"
+	"errors"
 	"fmt"
+	"sync"
 
-	"zupper/config"
-	"zupper/repo/a3"
-	"zupper/repo/configdb"
-	"zupper/repo/dbs"
-	"zupper/repo/selfdb"
-	"zupper/repo/znakdb"
-	"zupper/utility"
-
+	"github.com/mechiko/dbscan"
 	"go.uber.org/zap"
 )
 
 const modError = "pkg:repo"
 
-type Apper interface {
-	Options() *config.Configuration
-	SaveOptions(string, any) error
-	Logger() *zap.SugaredLogger
-	ConfigPath() string
-	DbPath() string
-	LogPath() string
-}
-
-type Repo interface {
-	Run(context.Context) error
-	Shutdown()
-	Self() *selfdb.DbSelf
-	ConfigDB() *configdb.DbConfig
-}
-
 var Version int64
 
-type Repository struct {
-	Apper
-	dbs     *dbs.Dbs
-	fsrarId string
-	errors  []string
+type singleMutex struct {
+	mutex sync.Mutex
 }
 
-var _ Repo = (*Repository)(nil)
+type Repository struct {
+	logger  *zap.SugaredLogger
+	dbs     *dbscan.Dbs
+	dbMutex map[dbscan.DbInfoType]*singleMutex
+	listDbs []dbscan.DbInfoType
+}
 
 // dbPath для своей БД
 // func New(logcfg ILogCfg, dbPath string) (rp *Repository, err error) {
-func New(apper Apper, dbPath string) (rp *Repository) {
+func New(logger *zap.SugaredLogger, listDbs dbscan.ListDbInfoForScan, dbPath string) (rp *Repository, err error) {
 	defer func() {
-		// ошибки дописываем в массив
-		// реально ошибка не возвращается ни когда TODO
 		if r := recover(); r != nil {
-			errStr := fmt.Sprintf("доступ к бд %v", r)
-			rp.errors = append(rp.errors, errStr)
+			err = fmt.Errorf("repo panic %v", r)
 		}
 	}()
-
+	if len(listDbs) == 0 {
+		return nil, fmt.Errorf("список описателей бд пуст")
+	}
+	for tp, info := range listDbs {
+		if info == nil {
+			return nil, fmt.Errorf("%s in list [%v] is nil", modError, tp)
+		}
+	}
+	dbs, err := dbscan.New(listDbs, dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("%s dbscan error %w", modError, err)
+	}
 	rp = &Repository{
-		Apper:  apper,
-		errors: make([]string, 0),
-		dbs:    dbs.New(apper, "config.db", dbPath),
+		logger:  logger,
+		dbs:     dbs,
+		dbMutex: make(map[dbscan.DbInfoType]*singleMutex),
+		listDbs: make([]dbscan.DbInfoType, 0),
 	}
-	// создаем объект описателей БД
-	// имя БД конфигурации и с признаком сканирования других БД
-	// rp.dbs = dbs.New(rp, "config.db", dbPath)
-	if len(rp.dbs.Errors()) > 0 {
-		rp.errors = append(rp.errors, rp.dbs.Errors()...)
-		// return
-	}
-	// проверяем на подключение все БД присутствующие в конфигурации
-	if found, _ := utility.FindStringInJsonTags(rp.Options(), "alcohelp3"); found {
-		if !rp.A3DBPing() {
-			rp.Logger().Infof("%s отсутствует БД А3", modError)
-			rp.dbs.A3().Exists = false
-		}
-		dbname := utility.FileNameWithoutExtension(rp.dbs.A3().Name)
-		if rp.Options().Application.Fsrarid != dbname {
-			rp.Options().Application.Fsrarid = dbname
-			rp.SaveOptions("application.fsrarid", dbname)
-		}
-
-	}
-	if found, _ := utility.FindStringInJsonTags(rp.Options(), "config"); found {
-		// if utility.StructHasField(cfg, "Config") {
-		if !rp.ConfigDBPing() {
-			// когда бд config.db нет что делаем
-			rp.Logger().Infof("%s отсутствует БД config", modError)
+	for tp := range listDbs {
+		dbInfo := rp.dbs.Info(tp)
+		if dbInfo == nil {
+			// такая ошибка не вероятна дбскан выдаст ошибку при сканировании
+			// но проверить надо вдруг чего...
+			err = errors.Join(err, fmt.Errorf("%s отсутствует БД %v", modError, tp))
+		} else {
+			rp.listDbs = append(rp.listDbs, tp)
+			// создаем в мапе мьютекс
+			if _, ok := rp.dbMutex[tp]; !ok {
+				rp.dbMutex[tp] = &singleMutex{}
+			}
 		}
 	}
-	if found, _ := utility.FindStringInJsonTags(rp.Options(), "trueznak"); found {
-		// if utility.StructHasField(cfg, "TrueZnak") {
-		if !rp.ZnakDBPing() {
-			// когда бд 4z db нет что делаем
-			rp.Logger().Infof("%s отсутствует БД 4z", modError)
-		}
+	if err != nil {
+		return nil, fmt.Errorf("%s не все бд найдены %v", modError, err)
 	}
-
-	if found, _ := utility.FindStringInJsonTags(rp.Options(), "selfdb"); found {
-		// if utility.StructHasField(cfg, "SelfDB") {
-		// инициализируем или проверяем БД self
+	if di := rp.dbs.Info(dbscan.Other); di != nil {
+		// инициализация для Self если она есть в настройках списка доступных БД
 		if err := rp.prepareSelf(); err != nil {
-			rp.Logger().Infof("%s подготовка %s.db %s", modError, config.Name, err.Error())
-			rp.AddError(err.Error())
-		}
-		if !rp.SelfDBPing() {
-			// когда бд 4z db нет что делаем
-			rp.Logger().Infof("%s отсутствует БД %s", modError, rp.dbs.Self().Name)
-			rp.AddError("selfdb отсутствует")
+			return nil, fmt.Errorf("%s ошибка миграции self %w", modError, err)
 		}
 	}
+	return rp, nil
+}
 
-	// это заглушка пока не работает просто ни чего не делает
-	if err := rp.dbs.SaveConfig(); err != nil {
-		rp.AddError(err.Error())
-		// return nil, fmt.Errorf("%s %w", modError, err)
+// возвращаем DbInfo или nil
+func (r *Repository) Info(t dbscan.DbInfoType) *dbscan.DbInfo {
+	if di := r.dbs.Info(t); di != nil {
+		return di
 	}
-	return rp
+	return nil
 }
 
-func (r *Repository) Dbs() *dbs.Dbs {
-	return r.dbs
-}
-
-func (r *Repository) FsrarID() string {
-	return r.fsrarId
-}
-
-func (r *Repository) Self() *selfdb.DbSelf {
-	return selfdb.New(r, r.dbs.Self())
-}
-
-func (r *Repository) ConfigDB() *configdb.DbConfig {
-	return configdb.New(r, r.dbs.ConfigInfo())
-}
-
-func (r *Repository) ZnakDB() *znakdb.DbZnak {
-	return znakdb.New(r, r.dbs.Znak())
-}
-
-func (r *Repository) A3DB() *a3.DbA3 {
-	return a3.New(r, r.dbs.A3())
-}
-
-func (r *Repository) Errors() []string {
-	return r.errors
-}
-
-func (r *Repository) AddError(e string) {
-	r.errors = append(r.errors, e)
+func (r *Repository) ListDbs() (out []dbscan.DbInfoType) {
+	if r.listDbs == nil {
+		return nil
+	}
+	out = make([]dbscan.DbInfoType, len(r.listDbs))
+	copy(out, r.listDbs)
+	return out
 }

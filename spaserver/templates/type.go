@@ -6,8 +6,8 @@ import (
 	"io/fs"
 	"path/filepath"
 	"zupper/domain"
-	"zupper/reductor"
-	"zupper/utility"
+
+	"github.com/mechiko/utility"
 )
 
 const modError = "http:templates"
@@ -16,8 +16,8 @@ const defaultTemplate = "index"
 
 // если каталог ../spaserver/templates существует, то прописываем его в переменную
 // для поиска шаблонов динамической обработки для отладки
-// вычисляется абсолютный путь относительно каталога запуска
-var pathTemplates = "../spaserver/template"
+// вычисляется абсолютный путь относительно каталога запуска в cmd под отладкой, потому ..
+var pathTemplates = "../spaserver/templates"
 
 func rootPathTemplates() (out string) {
 	defer func() {
@@ -31,21 +31,20 @@ func rootPathTemplates() (out string) {
 	}
 	if utility.PathOrFileExists(out) {
 		return out
-	} else {
-		return ""
 	}
+	return ""
 }
 
 type ITemplateUI interface {
 	LoadTemplates() (err error)
-	Render(w io.Writer, page reductor.ModelType, name string, data interface{}) error
-	RenderDebug(w io.Writer, page reductor.ModelType, name string, data interface{}) error
+	Render(w io.Writer, page domain.Model, name string, data interface{}) error
+	RenderDebug(w io.Writer, page domain.Model, name string, data interface{}) error
 }
 
 type Templates struct {
 	domain.Apper
 	debug                    bool
-	pages                    map[reductor.ModelType]*template.Template
+	pages                    map[domain.Model]*template.Template
 	fs                       fs.FS
 	rootPathTemplateGinDebug string
 	semaphore                Semaphore
