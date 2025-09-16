@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"io/fs"
@@ -53,7 +54,7 @@ type Templates struct {
 var _ ITemplateUI = &Templates{}
 
 // panic if error
-func New(app domain.Apper) *Templates {
+func New(app domain.Apper) (*Templates, error) {
 	t := &Templates{
 		Apper:                    app,
 		pages:                    nil,
@@ -65,10 +66,9 @@ func New(app domain.Apper) *Templates {
 		t.debug = true
 	}
 	if err := t.LoadTemplates(); err != nil {
-		t.Logger().Errorf("%s %w", modError, err)
-		panic(err.Error())
+		return nil, fmt.Errorf("%s %w", modError, err)
 	}
-	return t
+	return t, nil
 }
 
 func (t *Templates) IsDebug() bool {

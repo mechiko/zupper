@@ -1,7 +1,9 @@
 package adminka
 
 import (
+	"fmt"
 	"zupper/domain"
+	"zupper/repo"
 
 	"github.com/labstack/echo/v4"
 )
@@ -10,13 +12,20 @@ const modError = "usecase:adminka"
 
 type adminka struct {
 	domain.Apper
+	repo *repo.Repository
 }
 
 // New -.
-func New(a domain.Apper) *adminka {
-	return &adminka{
-		Apper: a,
+func New(a domain.Apper) (*adminka, error) {
+	r := repo.GetRepository()
+	if r == nil {
+		return nil, fmt.Errorf("repo not found")
 	}
+	adm := &adminka{
+		Apper: a,
+		repo:  r,
+	}
+	return adm, nil
 }
 
 func (a *adminka) Routes(server *echo.Echo) {

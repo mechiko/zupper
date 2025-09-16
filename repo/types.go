@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/mechiko/dbscan"
-	"go.uber.org/zap"
 )
 
 const modError = "pkg:repo"
@@ -17,8 +16,9 @@ type singleMutex struct {
 	mutex sync.Mutex
 }
 
+var rp *Repository
+
 type Repository struct {
-	logger  *zap.SugaredLogger
 	dbs     *dbscan.Dbs
 	dbMutex map[dbscan.DbInfoType]*singleMutex
 	listDbs []dbscan.DbInfoType
@@ -26,30 +26,32 @@ type Repository struct {
 
 // dbPath для своей БД
 // func New(logcfg ILogCfg, dbPath string) (rp *Repository, err error) {
-func New(logger *zap.SugaredLogger, listDbs dbscan.ListDbInfoForScan, dbPath string) (rp *Repository, err error) {
+func New(listDbs dbscan.ListDbInfoForScan, dbPath string) (err error) {
 	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("repo panic %v", r)
+		if rerr := recover(); rerr != nil {
+			err = fmt.Errorf("repo panic %v", rerr)
 		}
 	}()
+	if rp != nil {
+		return fmt.Errorf("repo repository already initialized")
+	}
+	rp = &Repository{
+		dbMutex: make(map[dbscan.DbInfoType]*singleMutex),
+	}
 	if len(listDbs) == 0 {
-		return nil, fmt.Errorf("список описателей бд пуст")
+		return fmt.Errorf("список описателей бд пуст")
 	}
 	for tp, info := range listDbs {
 		if info == nil {
-			return nil, fmt.Errorf("%s in list [%v] is nil", modError, tp)
+			return fmt.Errorf("%s in list [%v] is nil", modError, tp)
 		}
 	}
 	dbs, err := dbscan.New(listDbs, dbPath)
 	if err != nil {
-		return nil, fmt.Errorf("%s dbscan error %w", modError, err)
+		return fmt.Errorf("%s dbscan error %w", modError, err)
 	}
-	rp = &Repository{
-		logger:  logger,
-		dbs:     dbs,
-		dbMutex: make(map[dbscan.DbInfoType]*singleMutex),
-		listDbs: make([]dbscan.DbInfoType, 0),
-	}
+	rp.dbs = dbs
+	rp.listDbs = make([]dbscan.DbInfoType, 0)
 	for tp := range listDbs {
 		dbInfo := rp.dbs.Info(tp)
 		if dbInfo == nil {
@@ -65,15 +67,22 @@ func New(logger *zap.SugaredLogger, listDbs dbscan.ListDbInfoForScan, dbPath str
 		}
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%s не все бд найдены %v", modError, err)
+		return fmt.Errorf("%s не все бд найдены %v", modError, err)
 	}
 	if di := rp.dbs.Info(dbscan.Other); di != nil {
 		// инициализация для Self если она есть в настройках списка доступных БД
 		if err := rp.prepareSelf(); err != nil {
-			return nil, fmt.Errorf("%s ошибка миграции self %w", modError, err)
+			return fmt.Errorf("%s ошибка миграции self %w", modError, err)
 		}
 	}
-	return rp, nil
+	return nil
+}
+
+func GetRepository() *Repository {
+	if rp == nil {
+		panic(fmt.Errorf("repository not init"))
+	}
+	return rp
 }
 
 // возвращаем DbInfo или nil

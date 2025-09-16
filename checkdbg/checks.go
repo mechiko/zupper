@@ -2,7 +2,7 @@ package checkdbg
 
 import (
 	"fmt"
-	"zupper/domain"
+	"zupper/repo"
 
 	"go.uber.org/zap"
 )
@@ -11,12 +11,15 @@ const modError = "pkg:checkdbg"
 
 type Checks struct {
 	loger *zap.SugaredLogger
-	repo  domain.Repo
+	repo  *repo.Repository
 }
 
-func NewChecks(loger *zap.SugaredLogger, repo domain.Repo) (*Checks, error) {
+func NewChecks(loger *zap.SugaredLogger, repo *repo.Repository) (*Checks, error) {
 	// инициализируем REPO
 	// TODO изменить получение путей из конфига
+	if repo == nil {
+		return nil, fmt.Errorf("репозиторий nil")
+	}
 	return &Checks{
 		loger: loger,
 		repo:  repo,
@@ -46,6 +49,12 @@ func (c *Checks) Run() (err error) {
 		return err
 	}
 	if err := c.TestDbWG(); err != nil {
+		return err
+	}
+	if err := c.TestDbA3CodeApDict(); err != nil {
+		return err
+	}
+	if err := c.TestDbZnakDayUtil(); err != nil {
 		return err
 	}
 	return nil

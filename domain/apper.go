@@ -15,7 +15,7 @@ type Apper interface {
 	ConfigPath() string
 	DefaultDbPath() string
 	LogPath() string
-	Repo() Repo
+	// Repo() Repo
 	NowDateString() string
 	StartDateString() string
 	EndDateString() string

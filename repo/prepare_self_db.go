@@ -15,25 +15,15 @@ func (r *Repository) prepareSelf() (err error) {
 			err = fmt.Errorf("%s panic %v", modError, rr)
 		}
 	}()
-	// lock создает объект базы при этом она открывается и мы ответственны о ее закрытии и unlock
-	self, err := r.Lock(dbscan.Other)
+	selfInfo := r.Info(dbscan.Other)
+	self, err := selfInfo.Connect()
 	if err != nil {
-		return fmt.Errorf("%s lock %v", modError, err)
+		return fmt.Errorf("%s self connext error %v", modError, err)
 	}
-	// only Close/Unlock if Lock held the mutex (i.e., returned a non-nil DB)
 	if self != nil {
 		defer func() {
-			var dErr error
 			if errClose := self.Close(); errClose != nil {
-				r.logger.Errorf("%s self.Close %v", modError, errClose)
-				dErr = errors.Join(dErr, fmt.Errorf("%s selfdb close: %w", modError, errClose))
-			}
-			if errUnLock := r.Unlock(self); errUnLock != nil {
-				r.logger.Errorf("%s unlock error %v", modError, errUnLock)
-				dErr = errors.Join(dErr, fmt.Errorf("%s selfdb unlock: %w", modError, errUnLock))
-			}
-			if dErr != nil {
-				err = errors.Join(err, dErr)
+				err = errors.Join(err, errClose)
 			}
 		}()
 	}

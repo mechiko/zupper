@@ -5,28 +5,22 @@ import (
 
 	"github.com/mechiko/dbscan"
 	"github.com/upper/db/v4"
-	"go.uber.org/zap"
 )
 
 const modError = "a3db"
 
 type DbA3 struct {
-	logger    *zap.SugaredLogger
 	dbSession db.Session // открытый хэндл тут
 	dbInfo    *dbscan.DbInfo
 	infoType  dbscan.DbInfoType
 	version   int64
 }
 
-func New(info *dbscan.DbInfo, logger *zap.SugaredLogger) (*DbA3, error) {
+func New(info *dbscan.DbInfo) (*DbA3, error) {
 	if info == nil {
 		return nil, fmt.Errorf("%s dbinfo is nil", modError)
 	}
-	if logger == nil {
-		logger = zap.NewNop().Sugar()
-	}
 	db := &DbA3{
-		logger:   logger,
 		dbInfo:   info,
 		infoType: dbscan.A3,
 	}
