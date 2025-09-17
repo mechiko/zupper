@@ -1,13 +1,11 @@
 package checkdbg
 
 import (
-	"errors"
 	"fmt"
 	"time"
 	"zupper/domain"
 	"zupper/domain/models/application"
 	"zupper/reductor"
-	"zupper/repo/a3"
 	"zupper/repo/configdb"
 	"zupper/repo/znakdb"
 
@@ -146,22 +144,17 @@ func (c *Checks) TestDbA3RawGroupStruct() error {
 	return nil
 }
 
-func (c *Checks) TestDbA3CodeApDict() error {
-	info := c.repo.Info(dbscan.A3)
-	if info == nil {
-		return fmt.Errorf("базы A3 не найдено")
-	}
-	dbA3, err := a3.New(info)
+func (c *Checks) TestDbA3CodeApDict() (err error) {
+	dbA3, err := c.repo.LockA3()
 	if err != nil {
-		return fmt.Errorf("error open a3 db")
+		return fmt.Errorf("repo LockA3 error %w", err)
 	}
 	defer func() {
-		if cerr := dbA3.Close(); cerr != nil {
+		if uerr := c.repo.UnlockA3(dbA3); uerr != nil {
 			if err != nil {
-				// keep original op error and append close error
-				err = fmt.Errorf("%w; close error: %v", err, cerr)
+				err = fmt.Errorf("%w; unlock error: %v", err, uerr)
 			} else {
-				err = cerr
+				err = uerr
 			}
 		}
 	}()
@@ -206,8 +199,12 @@ func (c *Checks) TestDbA3Partner() error {
 		return fmt.Errorf("%s repo LockA3 error %w", modError, err)
 	}
 	defer func() {
-		if cerr := c.repo.UnlockA3(dbA3); cerr != nil {
-			err = errors.Join(err, cerr)
+		if uerr := c.repo.UnlockA3(dbA3); uerr != nil {
+			if err != nil {
+				err = fmt.Errorf("%w; unlock error: %v", err, uerr)
+			} else {
+				err = uerr
+			}
 		}
 	}()
 	model, err := reductor.Instance().Model(domain.Application)
@@ -216,7 +213,7 @@ func (c *Checks) TestDbA3Partner() error {
 	}
 	mdl, ok := model.(*application.Application)
 	if !ok {
-		return fmt.Errorf("model wrong type %T %w", model, err)
+		return fmt.Errorf("model wrong type %T", model)
 	}
 	ap, err := dbA3.PartnerByFsrarId(mdl.FsrarID)
 	if err != nil {

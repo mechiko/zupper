@@ -24,7 +24,7 @@ func NewModel(app domain.Apper) (*ProdUtilModel, error) {
 		model:  domain.ProdTools,
 		Title:  "Нанесения сегодня",
 		errors: make([]error, 0),
-		Date:   time.Now(),
+		Date:   time.Now().In(time.Local).Truncate(24 * time.Hour),
 	}
 	if err := model.ReadState(app); err != nil {
 		return nil, fmt.Errorf("model prodtools read state %w", err)
