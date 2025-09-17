@@ -17,6 +17,8 @@ type singleMutex struct {
 }
 
 var rp *Repository
+var rpMu sync.RWMutex
+var initMu sync.Mutex
 
 type Repository struct {
 	dbs     *dbscan.Dbs
@@ -32,10 +34,12 @@ func New(listDbs dbscan.ListDbInfoForScan, dbPath string) (err error) {
 			err = fmt.Errorf("repo panic %v", rerr)
 		}
 	}()
+	initMu.Lock()
+	defer initMu.Unlock()
 	if rp != nil {
 		return fmt.Errorf("repo repository already initialized")
 	}
-	rp = &Repository{
+	r := &Repository{
 		dbMutex: make(map[dbscan.DbInfoType]*singleMutex),
 	}
 	if len(listDbs) == 0 {
@@ -50,35 +54,40 @@ func New(listDbs dbscan.ListDbInfoForScan, dbPath string) (err error) {
 	if err != nil {
 		return fmt.Errorf("%s dbscan error %w", modError, err)
 	}
-	rp.dbs = dbs
-	rp.listDbs = make([]dbscan.DbInfoType, 0)
+	r.dbs = dbs
+	r.listDbs = make([]dbscan.DbInfoType, 0, len(listDbs))
 	for tp := range listDbs {
-		dbInfo := rp.dbs.Info(tp)
+		dbInfo := r.dbs.Info(tp)
 		if dbInfo == nil {
 			// такая ошибка не вероятна дбскан выдаст ошибку при сканировании
 			// но проверить надо вдруг чего...
 			err = errors.Join(err, fmt.Errorf("%s отсутствует БД %v", modError, tp))
 		} else {
-			rp.listDbs = append(rp.listDbs, tp)
+			r.listDbs = append(r.listDbs, tp)
 			// создаем в мапе мьютекс
-			if _, ok := rp.dbMutex[tp]; !ok {
-				rp.dbMutex[tp] = &singleMutex{}
+			if _, ok := r.dbMutex[tp]; !ok {
+				r.dbMutex[tp] = &singleMutex{}
 			}
 		}
 	}
 	if err != nil {
 		return fmt.Errorf("%s не все бд найдены %v", modError, err)
 	}
-	if di := rp.dbs.Info(dbscan.Other); di != nil {
+	if di := r.dbs.Info(dbscan.Other); di != nil {
 		// инициализация для Self если она есть в настройках списка доступных БД
-		if err := rp.prepareSelf(); err != nil {
+		if err := r.prepareSelf(); err != nil {
 			return fmt.Errorf("%s ошибка миграции self %w", modError, err)
 		}
 	}
+	rpMu.Lock()
+	rp = r
+	rpMu.Unlock()
 	return nil
 }
 
 func GetRepository() (*Repository, error) {
+	rpMu.RLock()
+	defer rpMu.RUnlock()
 	if rp == nil {
 		return nil, fmt.Errorf("repository not init")
 	}

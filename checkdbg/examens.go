@@ -203,7 +203,7 @@ func (c *Checks) TestDbZnakDayUtil() error {
 func (c *Checks) TestDbA3Partner() error {
 	dbA3, err := c.repo.LockA3()
 	if err != nil {
-		err = fmt.Errorf("%s repo LockA3 error %w", modError, err)
+		return fmt.Errorf("%s repo LockA3 error %w", modError, err)
 	}
 	defer func() {
 		if cerr := c.repo.UnlockA3(dbA3); cerr != nil {

@@ -32,7 +32,7 @@ var pages = map[string]types.PageConfig{
 
 func CreateTreeMenu(app domain.Apper, repo *repo.Repository) *types.AppmenuTreeModel {
 	var trueZnakMenu *types.AppMenu
-	var reportsMenu *types.AppMenu
+	// var reportsMenu *types.AppMenu
 	// var importMenu, trueZnakMenu, reportsMenu *types.AppMenu
 
 	tvm := types.NewAppMenuTreeModel()
@@ -46,28 +46,28 @@ func CreateTreeMenu(app domain.Apper, repo *repo.Repository) *types.AppmenuTreeM
 		trueZnakMenu = menu20.AddChild(app, page21, page21.NewPage, imageMenu(app, page21.Image))
 		tvm.Menu2NewPage[trueZnakMenu] = page21.NewPage
 	}
-	if repo.Is(dbscan.A3) {
-		menu30 := tvm.NewRootMenu("АлкоХелп3", nil, "103")
-		page32 := pages["Reports"]
-		reportsMenu = menu30.AddChild(app, page32, page32.NewPage, imageMenu(app, page32.Image))
-		tvm.Menu2NewPage[reportsMenu] = page32.NewPage
+	// if repo.Is(dbscan.A3) {
+	// 	menu30 := tvm.NewRootMenu("АлкоХелп3", nil, "103")
+	// 	page32 := pages["Reports"]
+	// 	reportsMenu = menu30.AddChild(app, page32, page32.NewPage, imageMenu(app, page32.Image))
+	// 	tvm.Menu2NewPage[reportsMenu] = page32.NewPage
 
-		// 	page33 := pages["Kontragent"]
-		// 	kontragentMenu := menu30.AddChild(app, page33, page33.NewPage, imageMenu(app, page33.Image))
-		// 	tvm.Menu2NewPage[kontragentMenu] = page33.NewPage
+	// 	page33 := pages["Kontragent"]
+	// 	kontragentMenu := menu30.AddChild(app, page33, page33.NewPage, imageMenu(app, page33.Image))
+	// 	tvm.Menu2NewPage[kontragentMenu] = page33.NewPage
 
-		// user := app.ImportTTN().User()
-		// if user == "voot" {
-		// 	page31 := pages["ImportTTN"]
-		// 	importMenu = menu30.AddChild(app, page31, page31.NewPage, imageMenu(app, page31.Image))
-		// 	tvm.Menu2NewPage[importMenu] = page31.NewPage
-		// }
-		// if user == "utsz" {
-		// 	page31 := pages["ImportTTNUtsz"]
-		// 	importMenu = menu30.AddChild(app, page31, page31.NewPage, imageMenu(app, page31.Image))
-		// 	tvm.Menu2NewPage[importMenu] = page31.NewPage
-		// }
-	}
+	// user := app.ImportTTN().User()
+	// if user == "voot" {
+	// 	page31 := pages["ImportTTN"]
+	// 	importMenu = menu30.AddChild(app, page31, page31.NewPage, imageMenu(app, page31.Image))
+	// 	tvm.Menu2NewPage[importMenu] = page31.NewPage
+	// }
+	// if user == "utsz" {
+	// 	page31 := pages["ImportTTNUtsz"]
+	// 	importMenu = menu30.AddChild(app, page31, page31.NewPage, imageMenu(app, page31.Image))
+	// 	tvm.Menu2NewPage[importMenu] = page31.NewPage
+	// }
+	// }
 	if repo.Is(dbscan.A3) {
 		page50 := pages["Utility"]
 		utility := tvm.NewRootAppMenu(app, page50, page50.NewPage, imageMenu(app, page50.Image))

@@ -29,7 +29,7 @@
 <div class="mt-2 flex items-center justify-between">
   <button 
     class="focus:shadow-outline rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none" 
-    hx-get="/prodtools/produce" hx-target="#page" hx-swap="outerHTML"
+    hx-get="/prodtools/produce/{{$.Date.Format "2006.01.02"}}" hx-target="#page" hx-swap="outerHTML"
     type="button">
   Создать производство
   </button>
@@ -66,7 +66,7 @@
 {{end}}
 {{end}}
 {{else}}
-<div>Нанесения сегодня не производилось или еще не подтверждено</div>
+<div>Нанесения {{$.Date.Format "02.01.2006"}} не производилось или еще не подтверждено</div>
 {{end}}
 
 

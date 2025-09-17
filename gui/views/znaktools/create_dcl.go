@@ -26,11 +26,11 @@ func (p *ZnakToolsPage) dclCreate(parent walk.Container, model *znakagregate.Zna
 						AssignTo: &p.filePb,
 						MinSize:  dcl.Size{Width: 170},
 						Enabled:  true,
-						Text:     "Выгрузить файл (китай)",
+						Text:     "Производство по нанесению",
 						OnClicked: func() {
 							// path.Join cleans slashes and breaks schemes. Use net/url.JoinPath (Go 1.19+) or url.Parse + join on URL.Path
 							base := p.BaseUrl()
-							uri, jErr := url.JoinPath(base, string(domain.ProdTools), "2025.08.29")
+							uri, jErr := url.JoinPath(base, string(domain.ProdTools), p.date.Format(p.Options().Layouts.TimeLayoutDay))
 							if jErr != nil {
 								p.Logger().Errorf("build uri: %v", jErr)
 								return
@@ -39,6 +39,15 @@ func (p *ZnakToolsPage) dclCreate(parent walk.Container, model *znakagregate.Zna
 							if err := utility.OpenHttpBrowser(uri, browser); err != nil {
 								p.Logger().Errorf("open uri error %v", err)
 							}
+						},
+					},
+					dcl.DateEdit{
+						Enabled:  true,
+						AssignTo: &p.start,
+						Format:   "yyyy.MM.dd",
+						Date:     p.date,
+						OnDateChanged: func() {
+							p.date = p.start.Date()
 						},
 					},
 					// dcl.Label{

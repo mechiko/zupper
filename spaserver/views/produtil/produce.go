@@ -1,14 +1,24 @@
 package produtil
 
 import (
+	"errors"
 	"fmt"
+	"time"
 	"zupper/repo"
 
 	"github.com/labstack/echo/v4"
 )
 
 func (t *page) Produce(c echo.Context) (err error) {
+	date := c.Param("date")
+	if date == "" {
+		return t.Index(c)
+	}
 	data, err := t.PageModel()
+	if err != nil {
+		return t.ServerError(c, err)
+	}
+	data.Date, err = time.Parse(t.Options().Layouts.TimeLayoutDay, date)
 	if err != nil {
 		return t.ServerError(c, err)
 	}
@@ -20,15 +30,18 @@ func (t *page) Produce(c echo.Context) (err error) {
 	if err != nil {
 		return t.ServerError(c, err)
 	}
-	defer rp.UnlockZnak(dbZnak)
-
+	defer func() {
+		if uerr := rp.UnlockZnak(dbZnak); uerr != nil {
+			err = errors.Join(err, uerr)
+		}
+	}()
 	dt := data.Date.Format(t.Options().Layouts.TimeLayoutDay)
 	data.Table, err = dbZnak.DayUtilisation(dt)
 	if err != nil {
 		return t.ServerError(c, err)
 	}
 	data.Reports = make([]*PrdReport, 0)
-	if len(data.Table) > 1 {
+	if len(data.Table) > 0 {
 		data.MapTable = make(map[string]map[string]int)
 		for _, day := range data.Table {
 			if _, exist := data.MapTable[day.ProductionDate]; !exist {

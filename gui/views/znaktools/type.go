@@ -2,6 +2,7 @@ package znaktools
 
 import (
 	"fmt"
+	"time"
 	"zupper/domain"
 	"zupper/domain/models/znakagregate"
 	"zupper/gui/types"
@@ -18,6 +19,7 @@ type ZnakToolsPage struct {
 	domain.Apper
 	model    domain.Model
 	sendChan func(domain.Model)
+	date     time.Time
 
 	parent    walk.Form
 	smallFont *walk.Font
@@ -35,6 +37,7 @@ type ZnakToolsPage struct {
 	filePb1C       *walk.PushButton
 	filePbCsv      *walk.PushButton
 	waitStateLbl   *walk.Label
+	start          *walk.DateEdit
 }
 
 func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp types.Page, err error) {
@@ -48,6 +51,7 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 		Apper:  app,
 		parent: parent.Form(),
 		model:  domain.ZnakAgregate,
+		date:   time.Now(),
 	}
 	p.smallFont, _ = walk.NewFont("JetBrains Mono", 9, 0)
 	p.tableFont, _ = walk.NewFont("JetBrains Mono", 10, walk.FontBold)

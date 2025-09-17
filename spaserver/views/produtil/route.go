@@ -13,7 +13,7 @@ func (t *page) Routes() error {
 	t.Echo().GET("/prodtools", t.Index)
 	t.Echo().GET("/prodtools/:date", t.IndexDate)
 	t.Echo().GET("/prodtools/table", t.Table)
-	t.Echo().GET("/prodtools/produce", t.Produce)
+	t.Echo().GET("/prodtools/produce/:date", t.Produce)
 	return nil
 }
 

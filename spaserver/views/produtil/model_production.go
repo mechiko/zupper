@@ -11,7 +11,6 @@ import (
 	"zupper/reductor"
 	"zupper/repo"
 
-	"github.com/mechiko/dbscan"
 	"github.com/mechiko/utility"
 	"github.com/upper/db/v4"
 )
@@ -176,23 +175,18 @@ func (prd *PrdReport) AddProduct(pr *domain.ApEgais, quantity string) {
 
 // запись отчета нанесения
 func (prd *PrdReport) WriteBD() (err error) {
-	info := prd.repo.Info(dbscan.A3)
-	if info == nil {
-		return fmt.Errorf("%w", err)
-	}
-	sess, err := info.Connect()
+	dbA3, err := prd.repo.LockA3()
 	if err != nil {
-		return fmt.Errorf("%w", err)
+		return fmt.Errorf("LockA3: %w", err)
 	}
-	defer sess.Close()
-	err = sess.Tx(func(tx db.Session) error {
-		err := prd.writeReport(tx)
-		if err != nil {
-			return err
+	defer func() {
+		if uerr := prd.repo.UnlockA3(dbA3); uerr != nil {
+			err = errors.Join(err, uerr)
 		}
-		return nil
+	}()
+	return dbA3.Sess().Tx(func(tx db.Session) error {
+		return prd.writeReport(tx)
 	})
-	return err
 }
 
 func (prd *PrdReport) writeReport(tx db.Session) (err error) {

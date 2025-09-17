@@ -1,5 +1,5 @@
 <div id="page" class="mt-6 text-base">
-  Отчеты нанесения сегодня: 
+  Отчеты нанесения на дату: {{$.Date.Format "02.01.2006"}}
   <div id="table" hx-get="/prodtools/table" hx-trigger="load" hx-target="#table" hx-swap="innerHTML" class="m-2">
   </div>
 </div>

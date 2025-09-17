@@ -121,6 +121,7 @@ func (m *Application) ReadState(app domain.Apper, rp *repo.Repository) (err erro
 	}
 	m.License = app.Options().Application.License
 	if cfgDb, err := rp.LockConfig(); err == nil {
+		defer rp.UnlockConfig(cfgDb)
 		if fsrarId, err := cfgDb.Key("fsrar_id"); err == nil {
 			m.FsrarID = fsrarId
 		}
