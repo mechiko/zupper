@@ -12,9 +12,19 @@ import (
 // всегда или открывает базу и проверяет объект или возвращает ошибку
 func (r *Repository) LockZnak() (*znakdb.DbZnak, error) {
 	info := r.dbs.Info(dbscan.TrueZnak)
+	if info == nil || !info.Exists {
+		return nil, fmt.Errorf("%s lock info %v is nil or not exists", modError, dbscan.TrueZnak)
+	}
 	mu, ok := r.dbMutex[dbscan.TrueZnak]
 	if ok {
 		mu.mutex.Lock()
+		// ensure we don't leak the lock on panic inside a3.New
+		defer func() {
+			if r := recover(); r != nil {
+				mu.mutex.Unlock()
+				panic(r)
+			}
+		}()
 	} else {
 		return nil, fmt.Errorf("repo lock not present mutex %v", dbscan.TrueZnak)
 	}

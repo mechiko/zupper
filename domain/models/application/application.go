@@ -36,13 +36,16 @@ var _ domain.Modeler = (*Application)(nil)
 
 // создаем модель считываем ее состояние и возвращаем указатель
 func New(app domain.Apper) (*Application, error) {
-	repo := repo.GetRepository()
+	rp, err := repo.GetRepository()
+	if err != nil {
+		return nil, fmt.Errorf("%w", err)
+	}
 	model := &Application{
 		model:       domain.Application,
 		Title:       "Application Title",
 		BrowserList: []string{string(utility.Default), string(utility.Chrome), string(utility.Firefox), string(utility.Yandex), string(utility.Edge)},
 	}
-	if err := model.ReadState(app, repo); err != nil {
+	if err := model.ReadState(app, rp); err != nil {
 		return nil, fmt.Errorf("model application read state %w", err)
 	}
 	return model, nil
@@ -117,7 +120,13 @@ func (m *Application) ReadState(app domain.Apper, rp *repo.Repository) (err erro
 		}
 	}
 	m.License = app.Options().Application.License
-	m.FsrarID = app.Options().Application.Fsrarid
+	if cfgDb, err := rp.LockConfig(); err == nil {
+		if fsrarId, err := cfgDb.Key("fsrar_id"); err == nil {
+			m.FsrarID = fsrarId
+		}
+	}
+	// m.FsrarID = app.Options().Application.Fsrarid
+
 	m.InitDateMn()
 	return nil
 }

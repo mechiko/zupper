@@ -7,10 +7,13 @@ import (
 )
 
 type ProdUtilModel struct {
-	Title  string
-	Date   time.Time
-	model  domain.Model
-	errors []error
+	Title    string
+	Date     time.Time
+	model    domain.Model
+	Table    []*domain.DayUtilisation
+	MapTable map[string]map[string]int
+	Reports  []*PrdReport
+	errors   []error
 }
 
 var _ domain.Modeler = (*ProdUtilModel)(nil)
@@ -21,6 +24,7 @@ func NewModel(app domain.Apper) (*ProdUtilModel, error) {
 		model:  domain.ProdTools,
 		Title:  "Нанесения сегодня",
 		errors: make([]error, 0),
+		Date:   time.Now(),
 	}
 	if err := model.ReadState(app); err != nil {
 		return nil, fmt.Errorf("model prodtools read state %w", err)
@@ -40,10 +44,10 @@ func (m *ProdUtilModel) ReadState(app domain.Apper) (err error) {
 
 func (a *ProdUtilModel) Copy() (interface{}, error) {
 	dst := *a
-	if a.errors != nil {
-		dst.errors = make([]error, len(a.errors))
-		copy(dst.errors, a.errors)
-	}
+	// if a.errors != nil {
+	// 	dst.errors = make([]error, len(a.errors))
+	// 	copy(dst.errors, a.errors)
+	// }
 	return &dst, nil
 }
 

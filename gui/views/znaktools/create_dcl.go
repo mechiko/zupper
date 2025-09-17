@@ -30,7 +30,7 @@ func (p *ZnakToolsPage) dclCreate(parent walk.Container, model *znakagregate.Zna
 						OnClicked: func() {
 							// path.Join cleans slashes and breaks schemes. Use net/url.JoinPath (Go 1.19+) or url.Parse + join on URL.Path
 							base := p.BaseUrl()
-							uri, jErr := url.JoinPath(base, string(domain.ProdTools))
+							uri, jErr := url.JoinPath(base, string(domain.ProdTools), "2025.08.29")
 							if jErr != nil {
 								p.Logger().Errorf("build uri: %v", jErr)
 								return

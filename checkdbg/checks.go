@@ -33,28 +33,31 @@ func (c *Checks) Run() (err error) {
 		}
 	}()
 
-	if err := c.TestDbA3BuilderGroupMap(); err != nil {
-		return err
-	}
-	if err := c.TestDbA3RawGroupStruct(); err != nil {
-		return err
-	}
-	if err := c.TestDbConfigContact(); err != nil {
-		return err
-	}
-	if err := c.TestDbConfigReleaseMethod(); err != nil {
-		return err
-	}
-	if err := c.TestDbConfigContactWithoutLock(); err != nil {
-		return err
-	}
-	if err := c.TestDbWG(); err != nil {
-		return err
-	}
-	if err := c.TestDbA3CodeApDict(); err != nil {
-		return err
-	}
-	if err := c.TestDbZnakDayUtil(); err != nil {
+	// if err := c.TestDbA3BuilderGroupMap(); err != nil {
+	// 	return err
+	// }
+	// if err := c.TestDbA3RawGroupStruct(); err != nil {
+	// 	return err
+	// }
+	// if err := c.TestDbConfigContact(); err != nil {
+	// 	return err
+	// }
+	// if err := c.TestDbConfigReleaseMethod(); err != nil {
+	// 	return err
+	// }
+	// if err := c.TestDbConfigContactWithoutLock(); err != nil {
+	// 	return err
+	// }
+	// if err := c.TestDbWG(); err != nil {
+	// 	return err
+	// }
+	// if err := c.TestDbA3CodeApDict(); err != nil {
+	// 	return err
+	// }
+	// if err := c.TestDbZnakDayUtil(); err != nil {
+	// 	return err
+	// }
+	if err := c.TestDbA3Partner(); err != nil {
 		return err
 	}
 	return nil

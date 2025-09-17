@@ -78,11 +78,11 @@ func New(listDbs dbscan.ListDbInfoForScan, dbPath string) (err error) {
 	return nil
 }
 
-func GetRepository() *Repository {
+func GetRepository() (*Repository, error) {
 	if rp == nil {
-		panic(fmt.Errorf("repository not init"))
+		return nil, fmt.Errorf("repository not init")
 	}
-	return rp
+	return rp, nil
 }
 
 // возвращаем DbInfo или nil

@@ -17,6 +17,7 @@ timelayoututc = "2006-01-02T15:04:05"
 license = "f7bc886d-bbcd-4ce9-845f-1209d87d406d"
 fsrarid = ""
 dbtype = "sqlite"
+producereportversion = "6"
 
 [trueclient]
 test = false
@@ -96,7 +97,8 @@ type AppConfiguration struct {
 	// DbType       string `mapstructure:"dbtype"`
 	License string `mapstructure:"license"`
 	// ScanTimer    int    `mapstructure:"scantimer"`
-	StartPage string `mapstructure:"startpage"`
+	StartPage            string `mapstructure:"startpage"`
+	ProduceReportVersion string `mapstructure:"producereportversion"`
 }
 
 type TrueClientConfig struct {

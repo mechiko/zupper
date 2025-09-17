@@ -130,8 +130,8 @@ func main() {
 	if err != nil {
 		errProcessExit("Ошибки запуска репозитория", err)
 	}
-	repoStart := repo.GetRepository()
-	if repoStart == nil {
+	repoStart, err := repo.GetRepository()
+	if err != nil {
 		errProcessExit("Ошибки получения репозитория", err)
 	}
 

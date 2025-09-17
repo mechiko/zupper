@@ -1,9 +1,12 @@
 package checkdbg
 
 import (
+	"errors"
 	"fmt"
 	"time"
 	"zupper/domain"
+	"zupper/domain/models/application"
+	"zupper/reductor"
 	"zupper/repo/a3"
 	"zupper/repo/configdb"
 	"zupper/repo/znakdb"
@@ -194,5 +197,31 @@ func (c *Checks) TestDbZnakDayUtil() error {
 		return err
 	}
 	c.loger.Infof("сегодня нанесено %d позиций", len(ap))
+	return nil
+}
+
+func (c *Checks) TestDbA3Partner() error {
+	dbA3, err := c.repo.LockA3()
+	if err != nil {
+		err = fmt.Errorf("%s repo LockA3 error %w", modError, err)
+	}
+	defer func() {
+		if cerr := c.repo.UnlockA3(dbA3); cerr != nil {
+			err = errors.Join(err, cerr)
+		}
+	}()
+	model, err := reductor.Instance().Model(domain.Application)
+	if err != nil {
+		return fmt.Errorf("get reductor model domain.Application %w", err)
+	}
+	mdl, ok := model.(*application.Application)
+	if !ok {
+		return fmt.Errorf("model wrong type %T %w", model, err)
+	}
+	ap, err := dbA3.PartnerByFsrarId(mdl.FsrarID)
+	if err != nil {
+		return err
+	}
+	c.loger.Infof("владелец %s %s", mdl.FsrarID, ap.ClientFullName)
 	return nil
 }

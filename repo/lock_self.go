@@ -12,16 +12,26 @@ import (
 // всегда или открывает базу и проверяет объект или возвращает ошибку
 func (r *Repository) LockOther() (*selfdb.DbSelf, error) {
 	info := r.dbs.Info(dbscan.Other)
+	if info == nil || !info.Exists {
+		return nil, fmt.Errorf("%s lock info %v is nil or not exists", modError, dbscan.Other)
+	}
 	mu, ok := r.dbMutex[dbscan.Other]
 	if ok {
 		mu.mutex.Lock()
+		// ensure we don't leak the lock on panic inside a3.New
+		defer func() {
+			if r := recover(); r != nil {
+				mu.mutex.Unlock()
+				panic(r)
+			}
+		}()
 	} else {
-		return nil, fmt.Errorf("repo lock not present mutex %v", dbscan.Other)
+		return nil, fmt.Errorf("%s lock not present mutex %v", modError, dbscan.Other)
 	}
 	db, err := selfdb.New(info)
 	if err != nil {
 		mu.mutex.Unlock()
-		return nil, fmt.Errorf("repo lock open %v error %w", dbscan.Other, err)
+		return nil, fmt.Errorf("%s lock open %v error %w", modError, dbscan.Other, err)
 	}
 	return db, nil
 }

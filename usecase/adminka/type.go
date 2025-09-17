@@ -17,13 +17,13 @@ type adminka struct {
 
 // New -.
 func New(a domain.Apper) (*adminka, error) {
-	r := repo.GetRepository()
-	if r == nil {
-		return nil, fmt.Errorf("repo not found")
+	rp, err := repo.GetRepository()
+	if err != nil {
+		return nil, fmt.Errorf("%w", err)
 	}
 	adm := &adminka{
 		Apper: a,
-		repo:  r,
+		repo:  rp,
 	}
 	return adm, nil
 }

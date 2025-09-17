@@ -16,9 +16,13 @@ func (r *Repository) prepareSelf() (err error) {
 		}
 	}()
 	selfInfo := r.Info(dbscan.Other)
+	if selfInfo == nil {
+		//return fmt.Errorf("%s get info: nil", modError)
+		return fmt.Errorf("%s lock info %v is nil or not exists", modError, dbscan.Other)
+	}
 	self, err := selfInfo.Connect()
 	if err != nil {
-		return fmt.Errorf("%s self connext error %v", modError, err)
+		return fmt.Errorf("%s self connext error %w", modError, err)
 	}
 	if self != nil {
 		defer func() {
