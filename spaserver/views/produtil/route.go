@@ -9,7 +9,6 @@ import (
 )
 
 func (t *page) Routes() error {
-	// prodTools := t.Echo().Group("/" + string(domain.ProdTools))
 	t.Echo().GET("/prodtools", t.Index)
 	t.Echo().GET("/prodtools/table", t.Table)
 	t.Echo().GET("/prodtools/produce/:date", t.Produce)

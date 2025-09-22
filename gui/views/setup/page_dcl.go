@@ -42,7 +42,7 @@ func (p *SetupPage) dclCreate(parent walk.Container, model *application.Applicat
 						// Background: dcl.SolidColorBrush{},
 						// Background:            dcl.SolidColorBrush{Color: walk.RGB(0x34, 0x82, 0xeb)},
 						Editable: false,
-						Value:    model.Browser,
+						Value:    string(model.Browser),
 						Model:    model.BrowserList,
 						OnCurrentIndexChanged: func() {
 							p.Logger().Debug("browser current index change")

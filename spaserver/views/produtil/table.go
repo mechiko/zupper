@@ -29,7 +29,7 @@ func (t *page) Table(c echo.Context) (err error) {
 		return t.ServerError(c, err)
 	}
 	data.Reports = make([]*PrdReport, 0)
-	if len(data.Table) > 1 {
+	if len(data.Table) > 0 {
 		data.MapTable = make(map[string]map[string]int)
 		for _, day := range data.Table {
 			if _, exist := data.MapTable[day.ProductionDate]; !exist {

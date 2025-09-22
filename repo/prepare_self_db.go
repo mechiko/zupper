@@ -1,8 +1,8 @@
 package repo
 
 import (
-	"errors"
 	"fmt"
+	"zupper/repo/selfdb"
 
 	"github.com/mechiko/dbscan"
 )
@@ -20,23 +20,13 @@ func (r *Repository) prepareSelf() (err error) {
 		//return fmt.Errorf("%s get info: nil", modError)
 		return fmt.Errorf("%s lock info %v is nil or not exists", modError, dbscan.Other)
 	}
-	self, err := selfInfo.Connect()
+	self, err := selfdb.New(selfInfo)
 	if err != nil {
-		return fmt.Errorf("%s self connext error %w", modError, err)
+		return fmt.Errorf("%s self new error %w", modError, err)
 	}
-	if self != nil {
-		defer func() {
-			if errClose := self.Close(); errClose != nil {
-				err = errors.Join(err, errClose)
-			}
-		}()
-	}
+	defer self.Close()
 
-	info := r.Info(dbscan.Other)
-	if info == nil {
-		return fmt.Errorf("%s get info: nil", modError)
-	}
-	if !info.Exists {
+	if !selfInfo.Exists {
 		return fmt.Errorf("%s get self db error!", modError)
 	}
 	return nil
