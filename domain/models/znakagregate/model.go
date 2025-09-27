@@ -38,12 +38,12 @@ func New(app domain.Apper, repo *repo.Repository) (*ZnakAgregate, error) {
 }
 
 // синхронизирует с приложением в сторону приложения
-func (m *ZnakAgregate) SyncToStore(app domain.Apper) (err error) {
+func (m *ZnakAgregate) SyncToStore(_ domain.Apper) (err error) {
 	return err
 }
 
 // читаем состояние
-func (m *ZnakAgregate) ReadState(app domain.Apper, repo *repo.Repository) (err error) {
+func (m *ZnakAgregate) ReadState(_ domain.Apper, _ *repo.Repository) (err error) {
 	return nil
 }
 
