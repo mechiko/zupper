@@ -67,3 +67,14 @@ type OrderMarkCodesSerialNumbers struct {
 	BlockId          string `db:"block_id"`
 	Status           string `db:"status"`
 }
+
+type DayUtilisation struct {
+	Gtin           string `db:"gtin"`
+	Order          int64  `db:"order"`
+	Utilisation    int64  `db:"utilisation"`
+	CreateDate     string `db:"create_date"`
+	ProductionDate string `db:"production_date"`
+	Quantity       int    `db:"quantity"`
+	ProductName    string `db:"product_name"`
+	ProductAlcCode string `db:"product_alc_code"`
+}

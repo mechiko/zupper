@@ -1,6 +1,8 @@
 module zupper
 
-go 1.24.6
+go 1.24
+
+toolchain go1.24.7
 
 require (
 	github.com/aglyzov/charmap v0.0.0-20240916203842-8463cca61eca

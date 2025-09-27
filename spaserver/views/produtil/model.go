@@ -7,10 +7,13 @@ import (
 )
 
 type ProdUtilModel struct {
-	Title  string
-	Date   time.Time
-	model  domain.Model
-	errors []error
+	Title    string
+	Date     time.Time
+	model    domain.Model
+	Table    []*domain.DayUtilisation
+	MapTable map[string]map[string]int
+	Reports  []*PrdReport
+	errors   []error
 }
 
 var _ domain.Modeler = (*ProdUtilModel)(nil)
@@ -21,6 +24,7 @@ func NewModel(app domain.Apper) (*ProdUtilModel, error) {
 		model:  domain.ProdTools,
 		Title:  "Нанесения сегодня",
 		errors: make([]error, 0),
+		Date:   time.Now().In(time.Local).Truncate(24 * time.Hour),
 	}
 	if err := model.ReadState(app); err != nil {
 		return nil, fmt.Errorf("model prodtools read state %w", err)
@@ -40,9 +44,26 @@ func (m *ProdUtilModel) ReadState(app domain.Apper) (err error) {
 
 func (a *ProdUtilModel) Copy() (interface{}, error) {
 	dst := *a
+	// deep-copy maps
+	if a.MapTable != nil {
+		dst.MapTable = make(map[string]map[string]int, len(a.MapTable))
+		for day, m := range a.MapTable {
+			inner := make(map[string]int, len(m))
+			for k, v := range m {
+				inner[k] = v
+			}
+			dst.MapTable[day] = inner
+		}
+	}
+	// copy slice headers (new backing arrays)
+	if a.Table != nil {
+		dst.Table = append([]*domain.DayUtilisation(nil), a.Table...)
+	}
+	if a.Reports != nil {
+		dst.Reports = append([]*PrdReport(nil), a.Reports...)
+	}
 	if a.errors != nil {
-		dst.errors = make([]error, len(a.errors))
-		copy(dst.errors, a.errors)
+		dst.errors = append([]error(nil), a.errors...)
 	}
 	return &dst, nil
 }

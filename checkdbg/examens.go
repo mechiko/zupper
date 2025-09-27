@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"time"
 	"zupper/domain"
+	"zupper/domain/models/application"
+	"zupper/reductor"
 	"zupper/repo/configdb"
+	"zupper/repo/znakdb"
 
 	"github.com/mechiko/dbscan"
 	"github.com/upper/db/v4"
@@ -12,16 +15,12 @@ import (
 )
 
 func (c *Checks) TestDbConfigContact() error {
-	db, err := c.repo.Lock(dbscan.Config)
+	dbCfg, err := c.repo.LockConfig()
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
-	defer c.repo.Unlock(db)
+	defer c.repo.UnlockConfig(dbCfg)
 
-	dbCfg, ok := db.(*configdb.DbConfig)
-	if !ok {
-		return fmt.Errorf("db type wrong %T", db)
-	}
 	val, err := dbCfg.Key("contact_person")
 	if err != nil {
 		return fmt.Errorf("get key(contact_person) %w", err)
@@ -31,16 +30,12 @@ func (c *Checks) TestDbConfigContact() error {
 }
 
 func (c *Checks) TestDbConfigReleaseMethod() error {
-	db, err := c.repo.Lock(dbscan.Config)
+	dbCfg, err := c.repo.LockConfig()
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
-	defer c.repo.Unlock(db)
+	defer c.repo.UnlockConfig(dbCfg)
 
-	dbCfg, ok := db.(*configdb.DbConfig)
-	if !ok {
-		return fmt.Errorf("db type wrong %T", db)
-	}
 	val, err := dbCfg.Key("release_method_type")
 	if err != nil {
 		return fmt.Errorf("get key(release_method_type) %w", err)
@@ -90,11 +85,11 @@ func (c *Checks) TestDbWG() error {
 }
 
 func (c *Checks) TestDbA3BuilderGroupMap() error {
-	dbA3, err := c.repo.Lock(dbscan.A3)
+	dbA3, err := c.repo.LockA3()
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
-	defer c.repo.Unlock(dbA3)
+	defer c.repo.UnlockA3(dbA3)
 
 	start := time.Now()
 	form1 := make([]map[string]interface{}, 0)
@@ -117,17 +112,12 @@ func (c *Checks) TestDbA3BuilderGroupMap() error {
 	return nil
 }
 
-type form1 struct {
-	Form1 string `db:"id"`
-	Total int64  `db:"total"`
-}
-
 func (c *Checks) TestDbA3RawGroupStruct() error {
-	dbA3, err := c.repo.Lock(dbscan.A3)
+	dbA3, err := c.repo.LockA3()
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
-	defer c.repo.Unlock(dbA3)
+	defer c.repo.UnlockA3(dbA3)
 
 	start := time.Now()
 	sqlQuery := `
@@ -150,15 +140,85 @@ func (c *Checks) TestDbA3RawGroupStruct() error {
 	if err != nil {
 		return fmt.Errorf("iterator error %w", err)
 	}
-	// f1 := form1{}
-	// for iter.Next(&f1) {
-	// 	if f1.Total > 1 {
-	// 		double = append(double, f1.Form1)
-	// 	}
-	// }
-	// if err := iter.Err(); err != nil {
-	// 	return fmt.Errorf("iterator error %w", err)
-	// }
 	c.loger.Infof("pass TestDbA3RawGroupStruct() %v", time.Since(start))
+	return nil
+}
+
+func (c *Checks) TestDbA3CodeApDict() (err error) {
+	dbA3, err := c.repo.LockA3()
+	if err != nil {
+		return fmt.Errorf("repo LockA3 error %w", err)
+	}
+	defer func() {
+		if uerr := c.repo.UnlockA3(dbA3); uerr != nil {
+			if err != nil {
+				err = fmt.Errorf("%w; unlock error: %v", err, uerr)
+			} else {
+				err = uerr
+			}
+		}
+	}()
+	ap, err := dbA3.CodeApMap()
+	if err != nil {
+		return err
+	}
+	c.loger.Infof("справочник АП %d позиций", len(ap))
+	return nil
+}
+
+func (c *Checks) TestDbZnakDayUtil() error {
+	info := c.repo.Info(dbscan.TrueZnak)
+	if info == nil {
+		return fmt.Errorf("базы A3 не найдено")
+	}
+	dbTz, err := znakdb.New(info)
+	if err != nil {
+		return fmt.Errorf("error open a3 db")
+	}
+	defer func() {
+		if cerr := dbTz.Close(); cerr != nil {
+			if err != nil {
+				// keep original op error and append close error
+				err = fmt.Errorf("%w; close error: %v", err, cerr)
+			} else {
+				err = cerr
+			}
+		}
+	}()
+	ap, err := dbTz.DayUtilisation("2025.08.29")
+	if err != nil {
+		return err
+	}
+	c.loger.Infof("сегодня нанесено %d позиций", len(ap))
+	return nil
+}
+
+func (c *Checks) TestDbA3Partner() error {
+	dbA3, err := c.repo.LockA3()
+	if err != nil {
+		return fmt.Errorf("%s repo LockA3 error %w", modError, err)
+	}
+	defer func() {
+		if uerr := c.repo.UnlockA3(dbA3); uerr != nil {
+			if err != nil {
+				err = fmt.Errorf("%w; unlock error: %v", err, uerr)
+			} else {
+				err = uerr
+			}
+		}
+	}()
+	model, err := reductor.Instance().Model(domain.Application)
+	if err != nil {
+		return fmt.Errorf("get reductor model domain.Application %w", err)
+	}
+	mdl, ok := model.(*application.Application)
+	if !ok {
+		return fmt.Errorf("model wrong type %T", model)
+	}
+	ap, err := dbA3.PartnerByFsrarId(mdl.FsrarID)
+	if err != nil {
+		return err
+	}
+	c.loger.Infof("владелец %s %s", mdl.FsrarID, ap.ClientFullName)
 	return nil
 }

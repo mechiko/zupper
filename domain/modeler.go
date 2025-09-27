@@ -18,6 +18,7 @@ const (
 	TrueClient   Model = "trueclient"
 	StatusBar    Model = "statusbar"
 	ZnakAgregate Model = "znakagregate"
+	ZnakTool     Model = "znaktool"
 	NoPage       Model = "nopage"
 	Header       Model = "header"
 	Footer       Model = "footer"
@@ -27,7 +28,7 @@ const (
 
 func IsValidModel(s string) bool {
 	switch Model(s) {
-	case Application, TrueClient, StatusBar, ZnakAgregate, NoPage, Header, Footer, ProdTools, Index:
+	case Application, TrueClient, StatusBar, ZnakAgregate, NoPage, Header, Footer, ProdTools, Index, ZnakTool:
 		return true
 	default:
 		return false
@@ -46,6 +47,8 @@ func ModelFromString(s string) (Model, error) {
 		return StatusBar, nil
 	case string(ZnakAgregate):
 		return ZnakAgregate, nil
+	case string(ZnakTool):
+		return ZnakTool, nil
 	case string(NoPage):
 		return NoPage, nil
 	case string(Header):

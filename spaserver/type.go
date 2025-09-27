@@ -54,7 +54,7 @@ type Server struct {
 
 // var sseManager *sse.Server
 
-func New(a domain.Apper, zl *zap.Logger, port string, debug bool) *Server {
+func New(a domain.Apper, zl *zap.Logger, port string, debug bool) (ss *Server, err error) {
 	addr := fmt.Sprintf("%s:%s", "127.0.0.1", port)
 	if port == "" {
 		addr = _defaultAddr
@@ -96,7 +96,7 @@ func New(a domain.Apper, zl *zap.Logger, port string, debug bool) *Server {
 		}
 	})
 
-	ss := &Server{
+	ss = &Server{
 		Apper:           a,
 		addr:            addr,
 		server:          e,
@@ -112,12 +112,16 @@ func New(a domain.Apper, zl *zap.Logger, port string, debug bool) *Server {
 	}
 
 	e.Renderer = ss
-	ss.templates = templates.New(ss)
-	ss.Routes()
+	if ss.templates, err = templates.New(ss); err != nil {
+		return nil, fmt.Errorf("spaserver templates error %w", err)
+	}
+	if err := ss.Routes(); err != nil {
+		return nil, fmt.Errorf("spaserver new error %w", err)
+	}
 	ss.sseManager = sse.New()
 	ss.streamError = ss.sseManager.CreateStream("error")
 	ss.streamInfo = ss.sseManager.CreateStream("info")
-	return ss
+	return ss, nil
 }
 
 func (s *Server) Start() {

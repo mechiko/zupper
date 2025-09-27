@@ -2,8 +2,9 @@ package znaktools
 
 import (
 	"fmt"
+	"time"
 	"zupper/domain"
-	"zupper/domain/models/znakagregate"
+	"zupper/domain/models/znaktool"
 	"zupper/gui/types"
 	"zupper/reductor"
 	"zupper/repo"
@@ -18,6 +19,7 @@ type ZnakToolsPage struct {
 	domain.Apper
 	model    domain.Model
 	sendChan func(domain.Model)
+	date     time.Time
 
 	parent    walk.Form
 	smallFont *walk.Font
@@ -35,6 +37,7 @@ type ZnakToolsPage struct {
 	filePb1C       *walk.PushButton
 	filePbCsv      *walk.PushButton
 	waitStateLbl   *walk.Label
+	dayUtilisation *walk.DateEdit
 }
 
 func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp types.Page, err error) {
@@ -47,12 +50,13 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 	p := &ZnakToolsPage{
 		Apper:  app,
 		parent: parent.Form(),
-		model:  domain.ZnakAgregate,
+		model:  domain.ZnakTool,
+		date:   time.Now(),
 	}
 	p.smallFont, _ = walk.NewFont("JetBrains Mono", 9, 0)
 	p.tableFont, _ = walk.NewFont("JetBrains Mono", 10, walk.FontBold)
 
-	var model *znakagregate.ZnakAgregate
+	var model *znaktool.ZnakTools
 	// инициализируем модель и сохраняем в редукторе
 	// если таковой еще нет в нем, предохраняется модель уже созданная и рабочая
 	if reductor.Instance().IsExistModel(p.model) {
@@ -60,14 +64,16 @@ func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp typ
 		if err != nil {
 			return nil, fmt.Errorf("%w", err)
 		}
+		p.date = model.Date
 	} else {
-		if model, err = znakagregate.New(p.Apper, repo); err != nil {
+		if model, err = znaktool.New(p.Apper, repo); err != nil {
 			return nil, fmt.Errorf("view:znaktools ошибка создания модели %s %v", p.model, err)
 		}
 		if err := reductor.Instance().SetModel(model, false); err != nil {
 			return nil, fmt.Errorf("view:znaktools ошибка записи модели в редуктор %s %v", p.model, err)
 		}
 	}
+	p.date = model.Date
 	if err = p.dclCreate(parent, model); err != nil {
 		return nil, fmt.Errorf("page znaktools dcl create %w", err)
 	}

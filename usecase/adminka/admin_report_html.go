@@ -3,28 +3,21 @@ package adminka
 import (
 	"fmt"
 	"net/http"
-	"zupper/repo/a3"
 	"zupper/uctemplate"
 
 	"github.com/labstack/echo/v4"
-	"github.com/mechiko/dbscan"
 )
 
 func (a *adminka) StatusDb(c echo.Context) error {
-	db, err := a.Repo().Lock(dbscan.A3)
+	dbA3, err := a.repo.LockA3()
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
 	defer func() {
-		if uerr := a.Repo().Unlock(db); uerr != nil {
+		if uerr := a.repo.UnlockA3(dbA3); uerr != nil {
 			a.Logger().Errorf("%s unlock error %s", modError, uerr.Error())
 		}
 	}()
-
-	dbA3, ok := db.(*a3.DbA3)
-	if !ok {
-		return a.ServerError(c, fmt.Errorf("%s wrong db type: got %T, want *a3.DbA3", modError, db))
-	}
 
 	admReport, err := dbA3.AdminReport()
 	if err != nil {
@@ -42,20 +35,15 @@ func (a *adminka) StatusDb(c echo.Context) error {
 }
 
 func (a *adminka) StatusDbClear(c echo.Context) error {
-	db, err := a.Repo().Lock(dbscan.A3)
+	dbA3, err := a.repo.LockA3()
 	if err != nil {
 		return a.ServerError(c, fmt.Errorf("%s %w", modError, err))
 	}
 	defer func() {
-		if uerr := a.Repo().Unlock(db); uerr != nil {
+		if uerr := a.repo.UnlockA3(dbA3); uerr != nil {
 			a.Logger().Errorf("%s unlock error %s", modError, uerr.Error())
 		}
 	}()
-
-	dbA3, ok := db.(*a3.DbA3)
-	if !ok {
-		return a.ServerError(c, fmt.Errorf("%s wrong db type: got %T, want *a3.DbA3", modError, db))
-	}
 
 	if err := dbA3.AdminReportClear(); err != nil {
 		return a.ServerError(c, fmt.Errorf("%s %w", modError, err))

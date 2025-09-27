@@ -8,7 +8,7 @@ import (
 	"github.com/upper/db/v4"
 )
 
-const maxCountPerReportUtilisation = 300000
+const maxCountPerReportUtilisation = 30000
 
 // запись отчета нанесения
 func (z *DbZnak) WriteUtilisation(cises []*domain.Record, model *domain.Model, prod, exp time.Time) (rid int64, err error) {

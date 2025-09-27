@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"net/url"
 	"zupper/domain"
-	"zupper/domain/models/znakagregate"
+	"zupper/domain/models/znaktool"
+	"zupper/reductor"
 
 	"github.com/mechiko/utility"
 	"github.com/mechiko/walk"
 	dcl "github.com/mechiko/walk/declarative"
 )
 
-func (p *ZnakToolsPage) dclCreate(parent walk.Container, model *znakagregate.ZnakAgregate) error {
+func (p *ZnakToolsPage) dclCreate(parent walk.Container, model *znaktool.ZnakTools) error {
 	if err := (dcl.Composite{
 		Border:   true,
 		AssignTo: &p.Composite,
@@ -26,11 +27,27 @@ func (p *ZnakToolsPage) dclCreate(parent walk.Container, model *znakagregate.Zna
 						AssignTo: &p.filePb,
 						MinSize:  dcl.Size{Width: 170},
 						Enabled:  true,
-						Text:     "Выгрузить файл (китай)",
+						Text:     "Производство по нанесению",
 						OnClicked: func() {
 							// path.Join cleans slashes and breaks schemes. Use net/url.JoinPath (Go 1.19+) or url.Parse + join on URL.Path
+							model, err := p.Model()
+							if err != nil {
+								p.Logger().Errorf("get model: %v", err.Error())
+								return
+							}
 							base := p.BaseUrl()
-							uri, jErr := url.JoinPath(base, string(domain.ProdTools))
+							layout := p.Options().Layouts.TimeLayoutDay
+							if layout == "" {
+								layout = "2006.01.02"
+							}
+							day := p.date.Format(layout)
+							model.Date = p.date
+							err = reductor.Instance().SetModel(model, false)
+							if err != nil {
+								p.Logger().Errorf("get model: %v", err.Error())
+								return
+							}
+							uri, jErr := url.JoinPath(base, string(domain.ProdTools), day)
 							if jErr != nil {
 								p.Logger().Errorf("build uri: %v", jErr)
 								return
@@ -38,6 +55,26 @@ func (p *ZnakToolsPage) dclCreate(parent walk.Container, model *znakagregate.Zna
 							browser := utility.Browser(p.Options().Browser)
 							if err := utility.OpenHttpBrowser(uri, browser); err != nil {
 								p.Logger().Errorf("open uri error %v", err)
+							}
+						},
+					},
+					dcl.DateEdit{
+						Enabled:  true,
+						AssignTo: &p.dayUtilisation,
+						Format:   "yyyy.MM.dd",
+						Date:     p.date,
+						OnDateChanged: func() {
+							p.date = p.dayUtilisation.Date()
+							model, err := p.Model()
+							if err != nil {
+								p.Logger().Errorf("get model: %v", err.Error())
+								return
+							}
+							model.Date = p.date
+							err = reductor.Instance().SetModel(model, false)
+							if err != nil {
+								p.Logger().Errorf("get model: %v", err.Error())
+								return
 							}
 						},
 					},

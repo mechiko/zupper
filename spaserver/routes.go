@@ -1,14 +1,17 @@
 package spaserver
 
 import (
-	"net/http"
+	"fmt"
 )
 
 // маршрутизация приложения
-func (s *Server) Routes() http.Handler {
+func (s *Server) Routes() error {
 	s.loadViews()
-	s.loadUsecaseRoutes()
+	err := s.loadUsecaseRoutes()
+	if err != nil {
+		return fmt.Errorf("routes error %w", err)
+	}
 	s.server.GET("/page", s.Page) // переход/загрузка на текущую страницу
 	s.server.GET("/sse", s.Sse)
-	return s.server
+	return nil
 }

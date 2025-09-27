@@ -1,6 +1,7 @@
 package a3
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -28,14 +29,13 @@ var queryRemove = []string{
 }
 
 func (a *DbA3) AdminReportClear() (err error) {
+	errs := make([]error, 0)
 	for i, sqlStr := range queryRemove {
-		result, err := a.dbSession.SQL().Exec(sqlStr)
+		_, err := a.dbSession.SQL().Exec(sqlStr)
 		if err != nil {
-			return fmt.Errorf("%s exec remove script #%d %w", modError, i, err)
+			errs = append(errs, fmt.Errorf("%s exec remove script #%d %w", modError, i, err))
 		}
-		id, _ := result.LastInsertId()
-		rows, _ := result.RowsAffected()
-		a.logger.Infof("effected id:%d rows:%d", id, rows)
 	}
-	return nil
+	err = errors.Join(errs...)
+	return err
 }

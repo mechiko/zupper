@@ -31,7 +31,7 @@ const modError = "main"
 var fileExe string
 var dir string
 
-// если home true то папка создается локально
+// если home true то папка создается в home каталоге
 var home = flag.Bool("home", false, "")
 
 func init() {
@@ -126,16 +126,16 @@ func main() {
 	listDbs[dbscan.A3] = &dbscan.DbInfo{}
 	listDbs[dbscan.TrueZnak] = &dbscan.DbInfo{}
 
-	repoStart, err := repo.New(app.Logger(), listDbs, app.DefaultDbPath())
+	err = repo.New(listDbs, app.DefaultDbPath())
 	if err != nil {
 		errProcessExit("Ошибки запуска репозитория", err)
 	}
-	err = app.SetRepo(repoStart)
+	repoStart, err := repo.GetRepository()
 	if err != nil {
-		errProcessExit("Ошибки установки в app репозитория", err)
+		errProcessExit("Ошибки получения репозитория", err)
 	}
 
-	appModel, err := application.New(app, repoStart)
+	appModel, err := application.New(app)
 	if err != nil {
 		errProcessExit("Ошибка создания модели для редуктора", err)
 	}
@@ -182,7 +182,10 @@ func main() {
 	if err != nil {
 		errProcessExit("Ошибка получения логера для http server", err)
 	}
-	httpServer := spaserver.New(app, spaServerLogger, port, true)
+	httpServer, err := spaserver.New(app, spaServerLogger, port, true)
+	if err != nil {
+		errProcessExit("Ошибка создания http server", err)
+	}
 	loger.Infof("отладка шаблонов %v", httpServer.TemplateIsDebug())
 	loger.Infof("путь шаблонов %s", httpServer.RootPathTemplates())
 	// запускаем сервер эхо через него SSE работает для флэш сообщений

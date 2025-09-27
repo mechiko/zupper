@@ -18,15 +18,15 @@ import (
 )
 
 type app struct {
-	ctx           context.Context
-	uuid          string // идентификатор для уникальности формы
-	config        *config.Config
-	options       *config.Configuration // копия config.Configuration
-	loger         *zap.SugaredLogger
-	pwd           string
-	startTime     time.Time
-	endTime       time.Time
-	repo          domain.Repo
+	ctx       context.Context
+	uuid      string // идентификатор для уникальности формы
+	config    *config.Config
+	options   *config.Configuration // копия config.Configuration
+	loger     *zap.SugaredLogger
+	pwd       string
+	startTime time.Time
+	endTime   time.Time
+	// repo          domain.Repo
 	output        string
 	dbSelfPath    string
 	defaultDbPath string
@@ -99,17 +99,17 @@ func (a *app) Pwd() string {
 	return a.pwd
 }
 
-func (a *app) Repo() domain.Repo {
-	return a.repo
-}
+// func (a *app) Repo() domain.Repo {
+// 	return a.repo
+// }
 
-func (a *app) SetRepo(repo domain.Repo) error {
-	if a.repo != nil {
-		return fmt.Errorf("попытка установить новый репо при уже работающем")
-	}
-	a.repo = repo
-	return nil
-}
+// func (a *app) SetRepo(repo domain.Repo) error {
+// 	if a.repo != nil {
+// 		return fmt.Errorf("попытка установить новый репо при уже работающем")
+// 	}
+// 	a.repo = repo
+// 	return nil
+// }
 
 func (a *app) Output() string {
 	return a.output

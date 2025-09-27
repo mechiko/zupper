@@ -5,6 +5,7 @@ import (
 	"time"
 	"zupper/config"
 	"zupper/domain"
+	"zupper/repo"
 
 	"github.com/mechiko/dbscan"
 	"github.com/mechiko/utility"
@@ -34,13 +35,17 @@ type Application struct {
 var _ domain.Modeler = (*Application)(nil)
 
 // создаем модель считываем ее состояние и возвращаем указатель
-func New(app domain.Apper, repo domain.Repo) (*Application, error) {
+func New(app domain.Apper) (*Application, error) {
+	rp, err := repo.GetRepository()
+	if err != nil {
+		return nil, fmt.Errorf("%w", err)
+	}
 	model := &Application{
 		model:       domain.Application,
 		Title:       "Application Title",
 		BrowserList: []string{string(utility.Default), string(utility.Chrome), string(utility.Firefox), string(utility.Yandex), string(utility.Edge)},
 	}
-	if err := model.ReadState(app, repo); err != nil {
+	if err := model.ReadState(app, rp); err != nil {
 		return nil, fmt.Errorf("model application read state %w", err)
 	}
 	return model, nil
@@ -58,36 +63,71 @@ func (m *Application) SyncToStore(app domain.Apper) (err error) {
 }
 
 // читаем состояние приложения
-func (m *Application) ReadState(app domain.Apper, repo domain.Repo) (err error) {
+func (m *Application) ReadState(app domain.Apper, rp *repo.Repository) (err error) {
 	m.Export = app.Options().Export
 	m.Browser = utility.Browser(app.Options().Browser)
 	m.Output = app.Options().Output
 	m.Host = app.Options().Hostname
 	m.Port = app.Options().HostPort
 	m.Debug = config.Mode == "development"
-	for _, v := range repo.ListDbs() {
-		if repo.Is(v) {
-			info := repo.Info(v)
+	for _, v := range rp.ListDbs() {
+		if rp.Is(v) {
+			info := rp.Info(v)
 			if info == nil {
 				// defensive: repo should guarantee non-nil, skip just in case
 				continue
 			}
 			switch v {
 			case dbscan.A3:
-				m.DbA3Desc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				switch info.Driver {
+				case "sqlite":
+					m.DbA3Desc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				case "mssql":
+					m.DbA3Desc = fmt.Sprintf("[%s] %s", info.Driver, info.Name)
+				default:
+					m.DbA3Desc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				}
 			case dbscan.Config:
-				m.DbConfigDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				switch info.Driver {
+				case "sqlite":
+					m.DbConfigDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				case "mssql":
+					m.DbConfigDesc = fmt.Sprintf("[%s] %s", info.Driver, info.Name)
+				default:
+					m.DbConfigDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				}
 			case dbscan.TrueZnak:
-				m.DbZnakDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				switch info.Driver {
+				case "sqlite":
+					m.DbZnakDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				case "mssql":
+					m.DbZnakDesc = fmt.Sprintf("[%s] %s", info.Driver, info.Name)
+				default:
+					m.DbZnakDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				}
 			case dbscan.Other:
-				m.DbLiteDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				switch info.Driver {
+				case "sqlite":
+					m.DbLiteDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				case "mssql":
+					m.DbLiteDesc = fmt.Sprintf("[%s] %s", info.Driver, info.Name)
+				default:
+					m.DbLiteDesc = fmt.Sprintf("[%s] %s", info.Driver, info.File)
+				}
 			default:
 				return fmt.Errorf("application readstate type error %v", v)
 			}
 		}
 	}
 	m.License = app.Options().Application.License
-	m.FsrarID = app.Options().Application.Fsrarid
+	if cfgDb, err := rp.LockConfig(); err == nil {
+		defer rp.UnlockConfig(cfgDb)
+		if fsrarId, err := cfgDb.Key("fsrar_id"); err == nil {
+			m.FsrarID = fsrarId
+		}
+	}
+	// m.FsrarID = app.Options().Application.Fsrarid
+
 	m.InitDateMn()
 	return nil
 }
