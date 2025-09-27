@@ -23,11 +23,6 @@ func New(app domain.Apper, repo *repo.Repository) (*ZnakTools, error) {
 	if err := model.ReadState(app, repo); err != nil {
 		return nil, fmt.Errorf("model ZnakArgegate read state %w", err)
 	}
-	// if !reductor.Instance().IsExistModel(model.model) {
-	// 	if err := reductor.Instance().SetModel(model.model, model); err != nil {
-	// 		return nil, fmt.Errorf("model %s store to reductor error %v", model.model, err)
-	// 	}
-	// }
 	return model, nil
 }
 

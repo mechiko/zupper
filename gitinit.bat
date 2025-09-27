@@ -1,6 +1,4 @@
 @echo off
-setlocal enabledelayedexpansion
-cd /d "%~dp0"
 git init -b main
 if not defined GIT_USER_NAME (
   set /p GIT_USER_NAME=Enter git user.name: 
