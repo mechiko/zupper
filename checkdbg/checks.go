@@ -57,8 +57,11 @@ func (c *Checks) Run() (err error) {
 	// if err := c.TestDbZnakDayUtil(); err != nil {
 	// 	return err
 	// }
-	if err := c.TestDbA3Partner(); err != nil {
-		return err
-	}
+	// if err := c.TestDbA3Partner(); err != nil {
+	// 	return err
+	// }
+	// if err := c.TestDbZnakUtilCodes(); err != nil {
+	// 	return err
+	// }
 	return nil
 }

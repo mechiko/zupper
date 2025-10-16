@@ -17,27 +17,33 @@ const modError = "gui:view:znaktools"
 type ZnakToolsPage struct {
 	*walk.Composite
 	domain.Apper
-	model    domain.Model
-	sendChan func(domain.Model)
-	date     time.Time
+	model         domain.Model
+	sendChan      func(domain.Model)
+	date          time.Time
+	idUtilisation int64
+	idOrder       int64
 
 	parent    walk.Form
 	smallFont *walk.Font
 	tableFont *walk.Font
 
-	groupLbl       *walk.Label
-	packageLbl     *walk.Label
-	ipsCombo       *walk.ComboBox
-	groupItogLbl   *walk.Label
-	packageItogLbl *walk.Label
-	fileLbl        *walk.Label
-	filePb         *walk.PushButton
-	filePbA3       *walk.PushButton
-	filePbXml      *walk.PushButton
-	filePb1C       *walk.PushButton
-	filePbCsv      *walk.PushButton
-	waitStateLbl   *walk.Label
-	dayUtilisation *walk.DateEdit
+	groupLbl            *walk.Label
+	packageLbl          *walk.Label
+	ipsCombo            *walk.ComboBox
+	groupItogLbl        *walk.Label
+	packageItogLbl      *walk.Label
+	fileLbl             *walk.Label
+	filePb              *walk.PushButton
+	filePbA3            *walk.PushButton
+	filePbXml           *walk.PushButton
+	filePb1C            *walk.PushButton
+	filePbCsv           *walk.PushButton
+	waitStateLbl        *walk.Label
+	dayUtilisation      *walk.DateEdit
+	numberUtilisation   *walk.NumberEdit
+	pbNumberUtilisation *walk.PushButton
+	numberOrder         *walk.NumberEdit
+	pbNumberOrder       *walk.PushButton
 }
 
 func New(parent walk.Container, app domain.Apper, repo *repo.Repository) (pp types.Page, err error) {

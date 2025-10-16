@@ -222,3 +222,30 @@ func (c *Checks) TestDbA3Partner() error {
 	c.loger.Infof("владелец %s %s", mdl.FsrarID, ap.ClientFullName)
 	return nil
 }
+
+func (c *Checks) TestDbZnakUtilCodes() error {
+	info := c.repo.Info(dbscan.TrueZnak)
+	if info == nil {
+		return fmt.Errorf("базы A3 не найдено")
+	}
+	dbTz, err := znakdb.New(info)
+	if err != nil {
+		return fmt.Errorf("error open a3 db")
+	}
+	defer func() {
+		if cerr := dbTz.Close(); cerr != nil {
+			if err != nil {
+				// keep original op error and append close error
+				err = fmt.Errorf("%w; close error: %v", err, cerr)
+			} else {
+				err = cerr
+			}
+		}
+	}()
+	ap, err := dbTz.UtilisationCodes(670)
+	if err != nil {
+		return err
+	}
+	c.loger.Infof("отчет нанесения 670 %d позиций", len(ap))
+	return nil
+}

@@ -85,6 +85,62 @@ func (p *ZnakToolsPage) dclCreate(parent walk.Container, model *znaktool.ZnakToo
 					dcl.HSpacer{},
 				},
 			},
+			dcl.Composite{
+				Layout: dcl.HBox{MarginsZero: true, SpacingZero: false,
+					Margins: dcl.Margins{Left: 5, Top: 5, Right: 5, Bottom: 5}},
+				Children: []dcl.Widget{
+					dcl.PushButton{
+						AssignTo: &p.pbNumberUtilisation,
+						MinSize:  dcl.Size{Width: 170},
+						Enabled:  true,
+						Text:     "Выгрузить отчет нанесения (Excel)",
+						OnClicked: func() {
+							p.idUtilisation = int64(p.numberUtilisation.Value())
+							if p.idUtilisation <= 0 {
+								utility.MessageBox("Ошибка", "номер отчета нанесения должен быть больше нуля")
+							}
+							if err := p.ExcelUtilisationCodes(p.idUtilisation); err != nil {
+								utility.MessageBox("Ошибка", err.Error())
+							}
+						},
+					},
+					dcl.NumberEdit{
+						Enabled:  true,
+						AssignTo: &p.numberUtilisation,
+					},
+					dcl.HSpacer{},
+				},
+			},
+			dcl.Composite{
+				Layout: dcl.HBox{MarginsZero: true, SpacingZero: false,
+					Margins: dcl.Margins{Left: 5, Top: 5, Right: 5, Bottom: 5}},
+				Children: []dcl.Widget{
+					dcl.PushButton{
+						AssignTo: &p.pbNumberOrder,
+						MinSize:  dcl.Size{Width: 170},
+						Enabled:  true,
+						Text:     "Выгрузить заказ (Excel)",
+						OnClicked: func() {
+							p.idOrder = int64(p.numberOrder.Value())
+							if p.idOrder <= 0 {
+								utility.MessageBox("Ошибка", "номер заказа должен быть больше нуля")
+							}
+							if err := p.ExcelOrderCodes(p.idOrder); err != nil {
+								utility.MessageBox("Ошибка", err.Error())
+							}
+						},
+					},
+					dcl.NumberEdit{
+						Enabled:  true,
+						AssignTo: &p.numberOrder,
+					},
+					// dcl.Label{
+					// 	AssignTo: &p.fileLbl,
+					// 	// TODO: Add specific label field for this button
+					// },
+					dcl.HSpacer{},
+				},
+			},
 		},
 	}).Create(dcl.NewBuilder(parent)); err != nil {
 		return fmt.Errorf("gui:view znak %w", err)

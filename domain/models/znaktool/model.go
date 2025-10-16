@@ -8,8 +8,10 @@ import (
 )
 
 type ZnakTools struct {
-	model domain.Model
-	Date  time.Time
+	model       domain.Model
+	Date        time.Time
+	UtilNumber  int64
+	OrderNumber int64
 }
 
 var _ domain.Modeler = (*ZnakTools)(nil)
