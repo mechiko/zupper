@@ -1,6 +1,7 @@
 package produtil
 
 import (
+	"errors"
 	"net/http"
 	"time"
 	"zupper/reductor"
@@ -47,5 +48,6 @@ func (t *page) IndexDate(c echo.Context) error {
 	if err := c.Render(http.StatusOK, t.Name(), t.RenderPageModel("index", data)); err != nil {
 		return t.ServerError(c, err)
 	}
-	return nil
+	return t.ServerError(c, errors.New("hi all"))
+	// return nil
 }

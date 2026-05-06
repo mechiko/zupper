@@ -1,6 +1,6 @@
 module zupper
 
-go 1.24
+go 1.24.0
 
 toolchain go1.24.7
 
@@ -16,7 +16,7 @@ require (
 	github.com/justinas/nosurf v1.2.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e
-	github.com/mechiko/dbscan v0.0.0-20250824090424-a3ed3ef70222
+	github.com/mechiko/dbscan v0.0.0-20251105133311-e26343610ecf
 	github.com/mechiko/utility v0.0.0-20250901141646-cc9c20f08412
 	github.com/mechiko/walk v0.0.0-20230816210514-788aa73102d5
 	github.com/pressly/goose/v3 v3.25.0
@@ -28,7 +28,7 @@ require (
 	github.com/xuri/excelize/v2 v2.9.1
 	go.uber.org/zap v1.27.0
 	golang.org/x/image v0.30.0
-	golang.org/x/sync v0.16.0
+	golang.org/x/sync v0.17.0
 	gopkg.in/cenkalti/backoff.v1 v1.1.0
 )
 
@@ -66,10 +66,10 @@ require (
 	github.com/xuri/efp v0.0.1 // indirect
 	github.com/xuri/nfp v0.0.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/net v0.45.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	gopkg.in/Knetic/govaluate.v3 v3.0.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect

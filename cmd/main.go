@@ -182,7 +182,8 @@ func main() {
 	if err != nil {
 		errProcessExit("Ошибка получения логера для http server", err)
 	}
-	httpServer, err := spaserver.New(app, spaServerLogger, port, true)
+	debug := config.Mode == "development"
+	httpServer, err := spaserver.New(app, spaServerLogger, port, debug)
 	if err != nil {
 		errProcessExit("Ошибка создания http server", err)
 	}

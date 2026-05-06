@@ -70,9 +70,6 @@ func (t *page) Produce(c echo.Context) (err error) {
 			}
 		}
 	}
-	// if err := c.Render(http.StatusOK, t.Name(), t.RenderPageModel("produce", data)); err != nil {
-	// 	return t.ServerError(c, err)
-	// }
 	t.SetFlush("Отчеты созданы", "info")
 	return c.NoContent(204)
 }
